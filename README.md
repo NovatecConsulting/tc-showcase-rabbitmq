@@ -5,7 +5,7 @@ However, the focus of this repository should primarily be on getting to know Rab
 
 The overall goal should be to enable an Event Mesh with different protocols. This requires, among other things, the connection of RabbitMQ and the provision of AMQP endpoints.
 
-###Objective
+### Objective
 RabbitMQ is a versatile message broker that supports various messaging patterns. These are to be implemented using small sample implementations:
 
 - Competing Consumers
@@ -13,7 +13,7 @@ RabbitMQ is a versatile message broker that supports various messaging patterns.
 - Consumer Group (consume messages in both, Publish-Subscribe Channel and Competing Consumers semantics)
 
 
-###Prerequisites
+### Prerequisites
 A local RabbitMQ installation is needed to test and run the code.
 Start a RabbitMQ Broker instance using Docker:
 
@@ -22,7 +22,7 @@ docker run --hostname my-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3
 ```
 
 
-## Implemmentation of Messaging Patterns using RabbitMQ
+## Implementation of Messaging Patterns using RabbitMQ
 ### Competing Consumers
 The Competing Consumers Pattern (also know as Point-to-Point) describes the scenario when one producer can publish
 messages to a messaging queue. Those messages can be processed by any of multiple consumers while each message will only be processed once.
