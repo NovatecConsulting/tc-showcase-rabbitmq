@@ -19,16 +19,17 @@ class DeliveryTest extends Specification {
     def messages = ["M1", "M2", "M3"]
 
     def"messages were consumed exactly once"() {
-        when:
-
+        setup:
         for(item in messages) {
             producer.sendMessage(item)
         }
+
+        when:
         consumer1.consumeMessages()
         consumer2.consumeMessages()
 
         sleep(5000)
-
+        
         def allConsumedMessages = consumer1.getConsumedMessages() + consumer2.getConsumedMessages()
         def commons = messages.intersect(allConsumedMessages)
         messages.removeAll(commons)
