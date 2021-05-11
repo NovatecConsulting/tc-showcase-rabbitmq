@@ -4,6 +4,9 @@ on:
     branches:
       - main
       - competingconsumers
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:

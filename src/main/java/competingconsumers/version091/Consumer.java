@@ -15,15 +15,15 @@ public class Consumer {
     private ConnectionFactory factory;
     private Connection connection;
     private Channel channel;
-    private ArrayList<String> consumedMessages;
+    private java.util.function.Consumer<String> messageHandler;
 
     /**
      * Establishes a new connection to a RabbitMQ Broker which runs locally. Declares a new channel and queue.
      * @param port port number of the Broker to connect to
      */
-    public Consumer(int port) {
+    public Consumer(int port, java.util.function.Consumer<String> messageHandler) {
         try {
-            consumedMessages = new ArrayList<>();
+            this.messageHandler = messageHandler;
 
             factory = new ConnectionFactory();
             factory.setHost("localhost");
@@ -35,10 +35,6 @@ public class Consumer {
         }catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
-    }
-
-    public ArrayList<String> getConsumedMessages() {
-        return consumedMessages;
     }
 
     /**
@@ -58,8 +54,7 @@ public class Consumer {
 
                 System.out.println("Received '" + message + "'");
                 try {
-                    doWork(message);
-                    consumedMessages.add(message);
+                    messageHandler.accept(message);
                 } finally {
                     System.out.println("Done.");
                     //send acknowledgement when finished
@@ -71,24 +66,6 @@ public class Consumer {
             });
         }catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Can be used to simulate the complexity of a task.
-     * It takes a given string and determines the number of dots contained.
-     * The thread is paused for this number of seconds.
-     * @param task string to be evaluated
-     */
-    private void doWork(String task) {
-        for (char ch : task.toCharArray()) {
-            if (ch == '.') {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException _ignored) {
-                    Thread.currentThread().interrupt();
-                }
-            }
         }
     }
 }
