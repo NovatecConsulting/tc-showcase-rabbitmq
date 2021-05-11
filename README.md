@@ -26,6 +26,8 @@ After publishing your code to Github, build and test steps will be executed by a
 
 Tests are written in Groovy using the [Spock Test Framework](https://spockframework.org/spock/docs/1.3/index.html).
 
+Pull requests will automatically trigger a new test run.
+
 ## RabbitMQ Basics
 ### High-Level Model in AMQP 0-9-1
 AMQP 0-9-1 uses the following model:
