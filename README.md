@@ -29,8 +29,8 @@ Tests are written in Groovy using the [Spock Test Framework](https://spockframew
 Pull requests will automatically trigger a new test run.
 
 ## RabbitMQ Basics
-### High-Level Model in AMQP 0-9-1
-AMQP 0-9-1 uses the following model:
+### High-Level Model (AMQP 0-9-1)
+RabbitMQ uses the following model:
 
 Publishers send their messages to exchanges which can be compared to postoffices or mailboxes. These messages are then 
 forwarded to one or more binded queues. Consumers can subscribe to queues or explicitly pull from them.
