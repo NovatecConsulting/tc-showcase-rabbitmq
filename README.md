@@ -12,7 +12,6 @@ RabbitMQ is a versatile message broker that supports various messaging patterns.
 - Publish-Subscribe Channel
 - Consumer Group (consume messages in both, Publish-Subscribe Channel and Competing Consumers semantics)
 
-
 ### Prerequisites
 A local RabbitMQ installation can be used to run the code.
 Start a RabbitMQ Broker instance using Docker:
@@ -78,6 +77,17 @@ Further details: https://www.enterpriseintegrationpatterns.com/patterns/messagin
 
 The implementation of producer and consumer (including comments and further explanations) can be found at:
 ```
-/src/main/java/competingconsumers/version091
+/src/main/java/competingconsumers/
 ```
+The pattern is implemented using AMQP 1-0 and AMQP 0-9-1. For the latter, a polling consumer and eventdriven consumer
+implementation is available.
+
+### Publish-Subsribe
+...
+
+### Consumer Group
+...
+
+## AMQP Version Interoperability
+...
 

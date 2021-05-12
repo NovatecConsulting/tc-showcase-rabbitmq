@@ -1,4 +1,4 @@
-package competingconsumers.version091;
+package competingconsumers.version091.eventdriven;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

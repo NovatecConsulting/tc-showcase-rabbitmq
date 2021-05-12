@@ -1,4 +1,4 @@
-package competingconsumers.version091;
+package competingconsumers.version091.eventdriven;
 
 public class ConsumerLauncher {
     private static final int RABBIT_MQ_PORT = 5672;

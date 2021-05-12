@@ -4,6 +4,7 @@ import com.swiftmq.amqp.AMQPContext;
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.generated.messaging.message_format.AmqpValue;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
+import com.swiftmq.amqp.v100.types.AMQPBinary;
 import com.swiftmq.amqp.v100.types.AMQPString;
 
 import java.io.IOException;

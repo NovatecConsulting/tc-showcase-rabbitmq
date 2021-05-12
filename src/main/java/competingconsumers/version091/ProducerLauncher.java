@@ -1,5 +1,7 @@
 package competingconsumers.version091;
 
+import competingconsumers.version091.Producer;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;

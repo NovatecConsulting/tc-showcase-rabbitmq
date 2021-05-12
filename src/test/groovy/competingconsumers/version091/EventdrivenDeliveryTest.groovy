@@ -1,5 +1,6 @@
 package competingconsumers.version091
 
+import competingconsumers.version091.eventdriven.Consumer
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import spock.lang.Shared
@@ -10,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 @Testcontainers
-class DeliveryTest extends Specification {
+class EventdrivenDeliveryTest extends Specification {
 
     @Shared
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
