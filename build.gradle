@@ -28,7 +28,7 @@ dependencies {
     compile 'junit:junit:4.12'
     testCompile "org.testcontainers:rabbitmq:1.15.3"
     implementation group: 'com.rabbitmq', name: 'amqp-client', version: '5.12.0'
-    implementation group: 'org.apache.qpid', name: 'proton-j', version: '0.33.8'
+    implementation group: 'com.swiftmq', name: 'swiftmq-client', version: '12.2.2'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
 

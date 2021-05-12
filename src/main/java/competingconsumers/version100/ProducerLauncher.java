@@ -1,7 +1,5 @@
 package competingconsumers.version100;
 
-import competingconsumers.version091.Producer;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -15,7 +13,7 @@ public class ProducerLauncher {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        competingconsumers.version091.Producer producer = new Producer(RABBIT_MQ_PORT);
+        competingconsumers.version100.Producer producer = new competingconsumers.version100.Producer(RABBIT_MQ_PORT);
 
         //wait for input from the console
         while (true) {

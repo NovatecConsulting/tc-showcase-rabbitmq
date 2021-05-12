@@ -1,7 +1,5 @@
 package competingconsumers.version100;
 
-import competingconsumers.version091.Consumer;
-
 public class ConsumerLauncher {
     private static final int RABBIT_MQ_PORT = 5672;
 
@@ -11,7 +9,7 @@ public class ConsumerLauncher {
      * @param args
      */
     public static void main(String[] args) {
-        competingconsumers.version091.Consumer consumer = new Consumer(RABBIT_MQ_PORT, ConsumerLauncher::doWork);
+        competingconsumers.version100.Consumer consumer = new competingconsumers.version100.Consumer(RABBIT_MQ_PORT, ConsumerLauncher::doWork);
         consumer.consumeMessages();
     }
 
