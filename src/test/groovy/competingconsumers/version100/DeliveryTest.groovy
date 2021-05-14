@@ -1,12 +1,15 @@
 package competingconsumers.version100
 
+
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.util.concurrent.CopyOnWriteArraySet
+import java.time.Duration
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 @Testcontainers
 class DeliveryTest extends Specification {
@@ -18,14 +21,14 @@ class DeliveryTest extends Specification {
             .withExposedPorts(5672)
 
     def producer = new Producer(rabbitMQContainer.getMappedPort(5672))
-    def allConsumedMessages = new CopyOnWriteArraySet();
-    def consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), allConsumedMessages::add)
-    def consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), allConsumedMessages::add)
-    def messages = ["M1", "M2", "M3"]
+    def queue = new LinkedBlockingQueue();
+    def consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
+    def consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
+    def sentMessages = ["M1", "M2", "M3"]
 
     def"messages were consumed exactly once"() {
-        setup:
-        for(item in messages) {
+        given:
+        for(item in sentMessages) {
             producer.sendMessage(item)
         }
 
@@ -33,17 +36,28 @@ class DeliveryTest extends Specification {
         startConsumerAsynchron(consumer1)
         startConsumerAsynchron(consumer2)
 
-        def commons = messages.intersect(allConsumedMessages) //removes eventual duplicates
-        messages.removeAll(commons)
-        allConsumedMessages.removeAll(commons)
-
         then:
-        
+        def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2))
+        sentMessages.size() == receivedMessages.size()
+        receivedMessages.containsAll(sentMessages)
+
+    }
+
+    def getReceivedMessages(int count, Duration timeoutPerPoll) {
+        def allConsumedMessages = new ArrayList();
+        for(int i = 0; i < count; i++) {
+            allConsumedMessages.add(queue.poll(timeoutPerPoll.toMillis(), TimeUnit.MILLISECONDS)) //will be called back as soon as an object is available
+        }
+        return allConsumedMessages;
     }
 
     def startConsumerAsynchron(Consumer consumer) {
-        Thread t = new Thread(() -> consumer.consumeMessages())
-        t.setDaemon(true)
-        t.start()
+        new Thread(() -> consumer.consumeMessages()).start()
+    }
+
+    def cleanup() {
+        System.out.println("Stopping")
+        consumer1.stop()
+        consumer2.stop()
     }
 }

@@ -1,5 +1,12 @@
 package competingconsumers.version100;
 
+import com.swiftmq.amqp.v100.client.AMQPException;
+import com.swiftmq.amqp.v100.client.AuthenticationException;
+import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
+import org.jline.utils.ShutdownHooks;
+
+import java.io.IOException;
+
 public class ConsumerLauncher {
     private static final int RABBIT_MQ_PORT = 5672;
 
@@ -8,12 +15,11 @@ public class ConsumerLauncher {
      * A local RabbitMQ broker instance needs to be started beforehand!
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException, InterruptedException {
         competingconsumers.version100.Consumer consumer = new competingconsumers.version100.Consumer(RABBIT_MQ_PORT, ConsumerLauncher::doWork);
-        System.out.println("Start");
-        while(true) {
-            consumer.consumeMessages();
-        }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(consumer::stop));
+        consumer.consumeMessages();
     }
 
     /**

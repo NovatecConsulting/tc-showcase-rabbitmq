@@ -22,7 +22,6 @@ class DeliveryTest extends Specification {
     def consumer2Queue = new LinkedBlockingQueue()
     def queue = new LinkedBlockingQueue()
 
-
     def"messages were consumed at least once"() {
         setup:
         consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
