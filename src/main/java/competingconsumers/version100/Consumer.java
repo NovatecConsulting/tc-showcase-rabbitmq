@@ -3,7 +3,6 @@ package competingconsumers.version100;
 import com.swiftmq.amqp.AMQPContext;
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
-import com.swiftmq.amqp.v100.mgmt.v750.EndpointImpl;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
 
@@ -18,8 +17,8 @@ public class Consumer {
     private java.util.function.Consumer<String> messageHandler;
 
     /**
-     * Establishes a new connection to a RabbitMQ Broker which runs locally. Declares a new channel and queue.
-     *
+     * Establishes a new connection to a RabbitMQ Broker which runs locally and sets some basic properties.
+     * Creates a session on this connection and a producer.
      * @param port port number of the Broker to connect to
      */
     public Consumer(int port, java.util.function.Consumer<String> messageHandler) {
@@ -49,7 +48,7 @@ public class Consumer {
      */
     public void consumeMessages() {
         try {
-            //blocking implementation of poll(), for non-blocking use receiveNoWait()
+            //blocking implementation of poll() with a timeout, for non-blocking use receiveNoWait()
             //(there is no message listener like in JMS available)
             AMQPMessage message = consumerInstance.receive(TimeUnit.SECONDS.toSeconds(1));
             if (message != null) {

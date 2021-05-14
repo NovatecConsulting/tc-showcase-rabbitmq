@@ -10,13 +10,13 @@ import java.io.IOException;
 
 public class Producer {
     private static final String TASK_QUEUE_NAME = "task_queue";
-    private static final String dataFormat = "%01024d";
     private Connection connection;
     private Session session;
     private com.swiftmq.amqp.v100.client.Producer producerInstance;
 
     /**
-     * Establishes a new connection to a RabbitMQ Broker which runs locally. Declares a new channel and queue.
+     * Establishes a new connection to a RabbitMQ Broker which runs locally and sets some basic properties.
+     * Creates a session on this connection and a producer.
      * @param port port number of the Broker to connect to
      */
     public Producer(int port) {
@@ -31,6 +31,8 @@ public class Producer {
             connection.setExceptionListener(Throwable::printStackTrace);
             connection.connect();
 
+            //connection multiplexing using sessions;
+            //messages can be split into multiple transfers -> windowSize = max number of unsettled transfers
             session = connection.createSession(10, 10);
             producerInstance = session.createProducer(TASK_QUEUE_NAME, qos);
         } catch (IOException | UnsupportedProtocolVersionException | AuthenticationException | AMQPException e) {
@@ -39,7 +41,7 @@ public class Producer {
     }
 
     /**
-     * Publishs a given String to the queue. The default exchange is used.
+     * Publishs a given String to the queue. Headers and properties are set internally (if not specified explicitly).
      * @param message which should be sent
      */
     public void sendMessage(String message) {
