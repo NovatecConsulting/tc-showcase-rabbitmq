@@ -10,7 +10,10 @@ public class ConsumerLauncher {
      */
     public static void main(String[] args) {
         competingconsumers.version100.Consumer consumer = new competingconsumers.version100.Consumer(RABBIT_MQ_PORT, ConsumerLauncher::doWork);
-        consumer.consumeMessages();
+        System.out.println("Start");
+        while(true) {
+            consumer.consumeMessages();
+        }
     }
 
     /**

@@ -47,24 +47,26 @@ public class Consumer {
      * and sends an acknowledgement.
      */
     public void consumeMessages() {
-        try {
-            //blocking implementation of poll() with a timeout, for non-blocking use receiveNoWait()
-            //(there is no message listener like in JMS available)
-            AMQPMessage message = consumerInstance.receive(TimeUnit.SECONDS.toSeconds(1));
-            if (message != null) {
-                final AMQPType value = message.getAmqpValue().getValue();
-                if (value instanceof AMQPString) {
-                    String s = ((AMQPString) value).getValue();
-                    System.out.println("Received: " + s);
-                    messageHandler.accept(s);
-                    System.out.println("Done");
-                }
-                if (!message.isSettled())
-                    message.accept();
+        while(true) {
+            try {
+                //blocking implementation of poll() with a timeout, for non-blocking use receiveNoWait()
+                //(there is no message listener like in JMS available)
+                AMQPMessage message = consumerInstance.receive(TimeUnit.SECONDS.toSeconds(1));
+                if (message != null) {
+                    final AMQPType value = message.getAmqpValue().getValue();
+                    if (value instanceof AMQPString) {
+                        String s = ((AMQPString) value).getValue();
+                        System.out.println("Received: " + s);
+                        messageHandler.accept(s);
+                        System.out.println("Done");
+                    }
+                    if (!message.isSettled())
+                        message.accept();
 
+                }
+            } catch (AMQPException e) {
+                e.printStackTrace();
             }
-        } catch (AMQPException e) {
-            e.printStackTrace();
         }
     }
 }

@@ -30,22 +30,20 @@ class DeliveryTest extends Specification {
         }
 
         when:
-        consumeThreeMessages()
+        startConsumerAsynchron(consumer1)
+        startConsumerAsynchron(consumer2)
 
         def commons = messages.intersect(allConsumedMessages) //removes eventual duplicates
         messages.removeAll(commons)
         allConsumedMessages.removeAll(commons)
 
-        consumer2.consumeMessages() //consume again to make sure that no duplicates were sent
-
         then:
-        messages.isEmpty() //were all messages consumed that have been sent?
-        allConsumedMessages.isEmpty() //were there any duplicates in sent messages?
+        
     }
 
-    def consumeThreeMessages() {
-        consumer1.consumeMessages();
-        consumer2.consumeMessages();
-        consumer1.consumeMessages();
+    def startConsumerAsynchron(Consumer consumer) {
+        Thread t = new Thread(() -> consumer.consumeMessages())
+        t.setDaemon(true)
+        t.start()
     }
 }
