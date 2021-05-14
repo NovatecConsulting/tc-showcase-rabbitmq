@@ -1,13 +1,13 @@
 package competingconsumers.version091
 
-
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.util.concurrent.CopyOnWriteArraySet
+import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 @Testcontainers
 class DeliveryTest extends Specification {
@@ -18,14 +18,13 @@ class DeliveryTest extends Specification {
 
     def producer = new Producer(rabbitMQContainer.getMappedPort(5672))
     def queue = new LinkedBlockingQueue();
-    def allConsumedMessages = new CopyOnWriteArraySet();
     def consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
     def consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
-    def messages = ["M1", "M2", "M3"]
+    def sentMessages = ["M1", "M2", "M3"]
 
-    def"messages were consumed exactly once"() {
+    def"messages were consumed at least once"() {
         setup:
-        for(item in messages) {
+        for(item in sentMessages) {
             producer.sendMessage(item)
         }
 
@@ -33,21 +32,17 @@ class DeliveryTest extends Specification {
         consumer1.consumeMessages()
         consumer2.consumeMessages()
 
-        waitForThreeMessages() //make sure that enough time has passed to successfully consume three messages
-
-        def commons = messages.intersect(allConsumedMessages) //removes eventual duplicates
-        messages.removeAll(commons)
-        allConsumedMessages.removeAll(commons)
-
         then:
-        messages.isEmpty() //were all messages consumed that have been sent?
-        allConsumedMessages.isEmpty() //were there any duplicates in sent messages?
-        queue.isEmpty() //did more messages arrive than were sent?
+        def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2))
+        sentMessages.size() == receivedMessages.size()
+        receivedMessages.containsAll(sentMessages)
     }
 
-    def waitForThreeMessages() {
-        for(int i = 0; i < 3; i++) {
-            allConsumedMessages.add(queue.take()) //will be called back as soon as an object is available
+    def getReceivedMessages(int count, Duration timeoutPerPoll) {
+        def allConsumedMessages = new ArrayList();
+        for(int i = 0; i < count; i++) {
+            allConsumedMessages.add(queue.poll(timeoutPerPoll.toMillis(), TimeUnit.MILLISECONDS)) //will be called back as soon as an object is available
         }
+        return allConsumedMessages;
     }
 }
