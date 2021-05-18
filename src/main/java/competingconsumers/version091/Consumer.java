@@ -68,4 +68,13 @@ public class Consumer {
             e.printStackTrace();
         }
     }
+
+    public void stop() {
+        try {
+            System.out.println("Stopping consumer...");
+            connection.close();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
