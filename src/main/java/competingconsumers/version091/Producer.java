@@ -43,4 +43,13 @@ public class Producer {
             e.printStackTrace();
         }
     }
+
+    public void stop() {
+        try {
+            System.out.println("Stopping producer...");
+            connection.close();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
