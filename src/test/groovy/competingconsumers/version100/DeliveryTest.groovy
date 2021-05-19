@@ -1,6 +1,5 @@
 package competingconsumers.version100
 
-
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import org.testcontainers.utility.DockerImageName
@@ -15,9 +14,8 @@ import java.util.concurrent.TimeUnit
 class DeliveryTest extends Specification {
 
     @Shared
-    RabbitMQContainer rabbitMQContainer = new RabbitMQContainer(
-            DockerImageName.parse("nadjahagen/rabbitmq-amqp-1_0-enabled:latest")
-                    .asCompatibleSubstituteFor("rabbitmq"))
+    RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
+            .withPluginsEnabled("rabbitmq_amqp1_0")
             .withExposedPorts(5672)
 
     def producer = new Producer(rabbitMQContainer.getMappedPort(5672))
@@ -26,12 +24,7 @@ class DeliveryTest extends Specification {
     def consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
     def sentMessages = ["M1", "M2", "M3"]
 
-    def"messages were consumed exactly once"() {
-        given:
-        for(item in sentMessages) {
-            producer.sendMessage(item)
-        }
-
+    def "messages were consumed exactly once"() {
         when:
         startConsumerAsynchron(consumer1)
         startConsumerAsynchron(consumer2)
@@ -40,13 +33,15 @@ class DeliveryTest extends Specification {
         def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2))
         sentMessages.size() == receivedMessages.size()
         receivedMessages.containsAll(sentMessages)
-
     }
 
     def getReceivedMessages(int count, Duration timeoutPerPoll) {
         def allConsumedMessages = new ArrayList();
-        for(int i = 0; i < count; i++) {
-            allConsumedMessages.add(queue.poll(timeoutPerPoll.toMillis(), TimeUnit.MILLISECONDS)) //will be called back as soon as an object is available
+        for (int i = 0; i < count; i++) {
+            def message = queue.poll(timeoutPerPoll.toMillis(), TimeUnit.MILLISECONDS)
+            if (message != null) {
+                allConsumedMessages.add(message)
+            }
         }
         return allConsumedMessages;
     }
@@ -55,9 +50,15 @@ class DeliveryTest extends Specification {
         new Thread(() -> consumer.consumeMessages()).start()
     }
 
+    def setup() {
+        for (item in sentMessages) {
+            producer.sendMessage(item)
+        }
+    }
+
     def cleanup() {
-        System.out.println("Stopping")
         consumer1.stop()
         consumer2.stop()
+        producer.stop()
     }
 }

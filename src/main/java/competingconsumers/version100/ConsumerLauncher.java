@@ -3,7 +3,6 @@ package competingconsumers.version100;
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
-import org.jline.utils.ShutdownHooks;
 
 import java.io.IOException;
 
@@ -13,6 +12,7 @@ public class ConsumerLauncher {
     /**
      * Enables to run the Consumer from the command line.
      * A local RabbitMQ broker instance needs to be started beforehand!
+     *
      * @param args
      */
     public static void main(String[] args) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException, InterruptedException {
@@ -26,6 +26,7 @@ public class ConsumerLauncher {
      * Can be used to simulate the complexity of a task.
      * It takes a given string and determines the number of dots contained.
      * The thread is paused for this number of seconds.
+     *
      * @param task string to be evaluated
      */
     private static void doWork(String task) {

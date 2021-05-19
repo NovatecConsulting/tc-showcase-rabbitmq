@@ -23,7 +23,7 @@ class DeliveryTest extends Specification {
     def queue = new LinkedBlockingQueue()
 
     def"messages were consumed at least once"() {
-        setup:
+        given:
         consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
         consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
 
@@ -38,7 +38,7 @@ class DeliveryTest extends Specification {
     }
 
     def"messages were consumed at most once"() {
-        setup:
+        given:
         consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
         consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
 
@@ -52,7 +52,7 @@ class DeliveryTest extends Specification {
     }
 
     def"messages were distributed to all consumers"() {
-        setup:
+        given:
         consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), consumer1Queue::add)
         consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), consumer2Queue::add)
 
