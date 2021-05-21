@@ -7,6 +7,7 @@ import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 
 public class Consumer {
     private static final Logger log = Logger.getLogger(Consumer.class.getName());
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
     private static final String TASK_QUEUE_NAME = "task_queue";
     private final Connection connection;
     private final Session session;
@@ -60,7 +62,9 @@ public class Consumer {
                 getMessage();
             }
         } finally {
+            log.info("Stopping consumer...");
             connection.close();
+            countDownLatch.countDown();
         }
     }
 
@@ -96,5 +100,9 @@ public class Consumer {
      */
     public void stop() {
         running.set(false);
+    }
+
+    public CountDownLatch getCountDownLatch() {
+        return countDownLatch;
     }
 }

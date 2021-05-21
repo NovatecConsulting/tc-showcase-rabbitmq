@@ -22,6 +22,16 @@ public class ConsumerLauncher {
      */
     public static void main(String[] args) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
         Consumer consumer = new Consumer(HOST, RABBIT_MQ_PORT, ConsumerLauncher::doWork);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            consumer.stop();
+            try {
+                consumer.getCountDownLatch().await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.severe("No grateful termination possible.");
+            }
+        }
+        ));
         consumer.consumeMessages();
     }
 
