@@ -9,8 +9,11 @@ import com.swiftmq.amqp.v100.types.AMQPType;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Consumer {
+    private static final Logger log = Logger.getLogger(Consumer.class.getName());
     private static final String TASK_QUEUE_NAME = "task_queue";
     private final Connection connection;
     private final Session session;
@@ -24,13 +27,13 @@ public class Consumer {
      *
      * @param port port number of the Broker to connect to
      */
-    public Consumer(int port, java.util.function.Consumer<String> messageHandler) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
+    public Consumer(String host, int port, java.util.function.Consumer<String> messageHandler) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
         this.messageHandler = messageHandler;
 
         int qos = QoS.AT_MOST_ONCE;
         AMQPContext ctx = new AMQPContext(AMQPContext.CLIENT);
 
-        connection = new Connection(ctx, "127.0.0.1", port, false);
+        connection = new Connection(ctx, host, port, false);
         connection.setContainerId("client");
         connection.setIdleTimeout(-1);
         connection.setMaxFrameSize(1024 * 4); //make sure that frame size fits the buffering capacity of sender/receiver
@@ -66,25 +69,31 @@ public class Consumer {
      * is processed and an acknowledgement is sent.
      */
     private void getMessage() {
-        try {
-            //wait for messages with timeout
-            AMQPMessage message = consumerInstance.receive(TimeUnit.SECONDS.toSeconds(1));
-            if (message != null) {
-                final AMQPType value = message.getAmqpValue().getValue();
-                if (value instanceof AMQPString) {
-                    String s = ((AMQPString) value).getValue();
-                    System.out.println("Received: " + s);
-                    messageHandler.accept(s);
-                    System.out.println("Done");
-                }
-                if (!message.isSettled()) //only settlement needed if message was not sent as "fire-and-forget"
-                    message.accept();
+        AMQPMessage message = consumerInstance.receive(TimeUnit.SECONDS.toSeconds(1));
+        if (message != null) {
+            final AMQPType value = message.getAmqpValue().getValue();
+
+            if (value instanceof AMQPString) {
+                String s = ((AMQPString) value).getValue();
+                System.out.println("Received: " + s);
+                messageHandler.accept(s);
+                System.out.println("Done");
             }
-        } catch (AMQPException e) {
-            e.printStackTrace();
+
+            if (!message.isSettled()) { //only settlement needed if message was not sent as "fire-and-forget"
+                try {
+                    message.accept();
+                } catch (InvalidStateException e) {
+                    String warning = "Consumed message was in an invalid state which should have been handled by a check. Unexpected behavior!";
+                    log.log(Level.WARNING, warning, e);
+                }
+            }
         }
     }
 
+    /**
+     * Stops the consumption of messages.
+     */
     public void stop() {
         running.set(false);
     }

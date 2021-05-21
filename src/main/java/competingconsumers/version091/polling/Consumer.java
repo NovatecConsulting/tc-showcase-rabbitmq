@@ -6,8 +6,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Consumer {
+    private static final Logger log = Logger.getLogger(Consumer.class.getName());
     private static final String TASK_QUEUE_NAME = "task_queue";
     private ConnectionFactory factory;
     private Connection connection;
@@ -17,22 +20,19 @@ public class Consumer {
 
     /**
      * Establishes a new connection to a RabbitMQ Broker which runs locally. Declares a new channel and queue.
+     *
      * @param port port number of the Broker to connect to
      */
-    public Consumer(int port, java.util.function.Consumer<String> messageHandler) {
-        try {
-            this.messageHandler = messageHandler;
+    public Consumer(String host, int port, java.util.function.Consumer<String> messageHandler) throws IOException, TimeoutException {
+        this.messageHandler = messageHandler;
 
-            factory = new ConnectionFactory();
-            factory.setHost("localhost");
-            factory.setPort(port);
-            connection = factory.newConnection();
-            channel = connection.createChannel();
+        factory = new ConnectionFactory();
+        factory.setHost(host);
+        factory.setPort(port);
+        connection = factory.newConnection();
+        channel = connection.createChannel();
 
-            channel.queueDeclare(TASK_QUEUE_NAME, false, false, false, null);
-        }catch (IOException | TimeoutException e) {
-            e.printStackTrace();
-        }
+        channel.queueDeclare(TASK_QUEUE_NAME, false, false, false, null);
     }
 
     /**
@@ -47,7 +47,7 @@ public class Consumer {
             //Important: if all consumers are busy, the queue will fill up!
             channel.basicQos(1);
 
-            while(running.get()) {
+            while (running.get()) {
                 //poll for messages -> blocking and less efficient, but might be useful/needed in some cases
                 GetResponse response = channel.basicGet(TASK_QUEUE_NAME, false);
                 if (response != null) {
@@ -61,12 +61,14 @@ public class Consumer {
                     channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
                 }
             }
-        }catch (IOException e) {
-            e.printStackTrace();
-        }finally {
+        } catch (IOException e) {
+            String warning = "Message could not be consumed and acknowledged.";
+            log.log(Level.WARNING, warning, e);
+        } finally {
             try {
+                log.info("Stopping consumer...");
                 connection.close();
-            }catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

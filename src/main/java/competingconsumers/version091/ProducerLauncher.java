@@ -1,13 +1,12 @@
 package competingconsumers.version091;
 
-import competingconsumers.version091.Producer;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProducerLauncher {
     private static final int RABBIT_MQ_PORT = 5672;
+    private static final String HOST = "localhost";
 
     /**
      * Enables to run the Producer from the command line.
@@ -16,7 +15,7 @@ public class ProducerLauncher {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        Producer producer = new Producer(RABBIT_MQ_PORT);
+        Producer producer = new Producer(HOST, RABBIT_MQ_PORT);
         AtomicBoolean running = new AtomicBoolean(true);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> { running.set(false); }));
 

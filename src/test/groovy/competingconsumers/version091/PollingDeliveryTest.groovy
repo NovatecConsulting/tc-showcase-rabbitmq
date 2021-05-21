@@ -1,6 +1,5 @@
 package competingconsumers.version091
 
-import competingconsumers.version091.Producer
 import competingconsumers.version091.polling.Consumer
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
@@ -18,16 +17,16 @@ class PollingDeliveryTest extends Specification {
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withExposedPorts(5672)
 
+    def producer, consumer1, consumer2, queue
     def sentMessages = ["M1", "M2", "M3"]
-    def producer, consumer1, consumer2
     def consumer1Queue = new LinkedBlockingQueue()
     def consumer2Queue = new LinkedBlockingQueue()
-    def queue = new LinkedBlockingQueue()
 
     def "messages were consumed at least once"() {
         given:
-        consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
-        consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
+        queue = new LinkedBlockingQueue()
+        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
 
         when:
         startConsumerAsynchron(consumer1)
@@ -35,14 +34,15 @@ class PollingDeliveryTest extends Specification {
 
         then:
         def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2), queue)
-        sentMessages.size() == receivedMessages.size()
+        sentMessages.size() >= receivedMessages.size()
         receivedMessages.containsAll(sentMessages)
     }
 
     def "messages were consumed at most once"() {
         given:
-        consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
-        consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
+        queue = new LinkedBlockingQueue()
+        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
 
         when:
         startConsumerAsynchron(consumer1)
@@ -55,8 +55,8 @@ class PollingDeliveryTest extends Specification {
 
     def"messages were distributed to all consumers"() {
         given:
-        consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), consumer1Queue::add)
-        consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), consumer2Queue::add)
+        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer1Queue::add)
+        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer2Queue::add)
 
         when:
         startConsumerAsynchron(consumer1)
@@ -86,7 +86,7 @@ class PollingDeliveryTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer(rabbitMQContainer.getMappedPort(5672))
+        producer = new Producer("localhost", rabbitMQContainer.getMappedPort(5672))
         for (item in sentMessages) {
             producer.sendMessage(item)
         }

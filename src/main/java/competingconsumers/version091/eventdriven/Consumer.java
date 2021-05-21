@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Consumer {
+    private static final Logger log = Logger.getLogger(Consumer.class.getName());
     private static final String TASK_QUEUE_NAME = "task_queue";
     private ConnectionFactory factory;
     private Connection connection;
@@ -19,22 +22,19 @@ public class Consumer {
 
     /**
      * Establishes a new connection to a RabbitMQ Broker which runs locally. Declares a new channel and queue.
+     *
      * @param port port number of the Broker to connect to
      */
-    public Consumer(int port, java.util.function.Consumer<String> messageHandler) {
-        try {
-            this.messageHandler = messageHandler;
+    public Consumer(String host, int port, java.util.function.Consumer<String> messageHandler) throws IOException, TimeoutException {
+        this.messageHandler = messageHandler;
 
-            factory = new ConnectionFactory();
-            factory.setHost("localhost");
-            factory.setPort(port);
-            connection = factory.newConnection();
-            channel = connection.createChannel();
+        factory = new ConnectionFactory();
+        factory.setHost(host);
+        factory.setPort(port);
+        connection = factory.newConnection();
+        channel = connection.createChannel();
 
-            channel.queueDeclare(TASK_QUEUE_NAME, false, false, false, null);
-        }catch (IOException | TimeoutException e) {
-            e.printStackTrace();
-        }
+        channel.queueDeclare(TASK_QUEUE_NAME, false, false, false, null);
     }
 
     /**
@@ -64,17 +64,19 @@ public class Consumer {
             //no auto-acknowledgement!
             channel.basicConsume(TASK_QUEUE_NAME, false, deliverCallback, consumerTag -> {
             });
-        }catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            String warning = "Message could not be consumed and acknowledged.";
+            log.log(Level.WARNING, warning, e);
         }
     }
 
-    public void stop() {
-        try {
-            System.out.println("Stopping consumer...");
-            connection.close();
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * Closes the connection.
+     *
+     * @throws IOException on connection closing
+     */
+    public void stop() throws IOException {
+        log.info("Stopping consumer...");
+        connection.close();
     }
 }

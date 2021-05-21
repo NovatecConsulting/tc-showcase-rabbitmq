@@ -5,9 +5,14 @@ import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class ConsumerLauncher {
+    private static final Logger log = Logger.getLogger(Consumer.class.getName());
     private static final int RABBIT_MQ_PORT = 5672;
+    private static final String HOST = "localhost";
 
     /**
      * Enables to run the Consumer from the command line.
@@ -15,10 +20,8 @@ public class ConsumerLauncher {
      *
      * @param args
      */
-    public static void main(String[] args) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException, InterruptedException {
-        competingconsumers.version100.Consumer consumer = new competingconsumers.version100.Consumer(RABBIT_MQ_PORT, ConsumerLauncher::doWork);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(consumer::stop));
+    public static void main(String[] args) throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
+        Consumer consumer = new Consumer(HOST, RABBIT_MQ_PORT, ConsumerLauncher::doWork);
         consumer.consumeMessages();
     }
 

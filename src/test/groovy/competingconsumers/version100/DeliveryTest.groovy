@@ -18,32 +18,49 @@ class DeliveryTest extends Specification {
             .withPluginsEnabled("rabbitmq_amqp1_0")
             .withExposedPorts(5672)
 
-    def producer = new Producer(rabbitMQContainer.getMappedPort(5672))
-    def queue = new LinkedBlockingQueue();
-    def consumer1 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
-    def consumer2 = new Consumer(rabbitMQContainer.getMappedPort(5672), queue::add)
+    def producer, consumer1, consumer2, queue
     def sentMessages = ["M1", "M2", "M3"]
 
-    def "messages were consumed exactly once"() {
+    def "messages were consumed at least once"() {
+        given:
+        queue = new LinkedBlockingQueue()
+        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+
         when:
         startConsumerAsynchron(consumer1)
         startConsumerAsynchron(consumer2)
 
         then:
-        def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2))
-        sentMessages.size() == receivedMessages.size()
+        def receivedMessages = getReceivedMessages(3, Duration.ofSeconds(2), queue)
+        sentMessages.size() >= receivedMessages.size()
         receivedMessages.containsAll(sentMessages)
     }
 
-    def getReceivedMessages(int count, Duration timeoutPerPoll) {
-        def allConsumedMessages = new ArrayList();
-        for (int i = 0; i < count; i++) {
+    def "messages were consumed at most once"() {
+        given:
+        queue = new LinkedBlockingQueue()
+        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+
+        when:
+        startConsumerAsynchron(consumer1)
+        startConsumerAsynchron(consumer2)
+
+        then:
+        def receivedMessages = getReceivedMessages(4, Duration.ofSeconds(2), queue)
+        receivedMessages.size() <= sentMessages.size()
+    }
+
+    def getReceivedMessages(int count, Duration timeoutPerPoll, LinkedBlockingQueue queue) {
+        def allConsumedMessages = new ArrayList()
+        for(int i = 0; i < count; i++) {
             def message = queue.poll(timeoutPerPoll.toMillis(), TimeUnit.MILLISECONDS)
-            if (message != null) {
+            if(message != null) {
                 allConsumedMessages.add(message)
             }
         }
-        return allConsumedMessages;
+        return allConsumedMessages
     }
 
     def startConsumerAsynchron(Consumer consumer) {
@@ -51,6 +68,7 @@ class DeliveryTest extends Specification {
     }
 
     def setup() {
+        producer = new Producer("localhost", rabbitMQContainer.getMappedPort(5672))
         for (item in sentMessages) {
             producer.sendMessage(item)
         }
