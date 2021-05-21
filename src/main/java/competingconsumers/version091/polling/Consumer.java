@@ -4,6 +4,7 @@ import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -11,6 +12,7 @@ import java.util.logging.Logger;
 
 public class Consumer {
     private static final Logger log = Logger.getLogger(Consumer.class.getName());
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
     private static final String TASK_QUEUE_NAME = "task_queue";
     private ConnectionFactory factory;
     private Connection connection;
@@ -68,13 +70,21 @@ public class Consumer {
             try {
                 log.info("Stopping consumer...");
                 connection.close();
+                countDownLatch.countDown();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * Interrupts the while-loop for message consumption and therefore triggers connection closing.
+     */
     public void stop() {
         running.set(false);
+    }
+
+    public CountDownLatch getCountDownLatch() {
+        return countDownLatch;
     }
 }

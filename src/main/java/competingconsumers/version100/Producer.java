@@ -8,11 +8,13 @@ import com.swiftmq.amqp.v100.types.AMQPBinary;
 import com.swiftmq.amqp.v100.types.AMQPString;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Producer {
     private static final Logger log = Logger.getLogger(Producer.class.getName());
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
     private static final String TASK_QUEUE_NAME = "task_queue";
     private Connection connection;
     private Session session;
@@ -63,7 +65,16 @@ public class Producer {
         }
     }
 
+    /**
+     * Closes the connection and counts down for thread termination.
+     */
     public void stop() {
+        log.info("Stopping producer...");
         connection.close();
+        countDownLatch.countDown();
+    }
+
+    public CountDownLatch getCountDownLatch() {
+        return countDownLatch;
     }
 }

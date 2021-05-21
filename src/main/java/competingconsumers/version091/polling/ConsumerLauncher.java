@@ -1,9 +1,12 @@
 package competingconsumers.version091.polling;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 public class ConsumerLauncher {
+    private static final Logger log = Logger.getLogger(Consumer.class.getName());
     private static final int RABBIT_MQ_PORT = 5672;
     private static final String HOST = "localhost";
 
@@ -14,6 +17,16 @@ public class ConsumerLauncher {
      */
     public static void main(String[] args) throws IOException, TimeoutException {
         Consumer consumer = new Consumer(HOST, RABBIT_MQ_PORT, ConsumerLauncher::doWork);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            consumer.stop();
+            try {
+                consumer.getCountDownLatch().await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.severe("No grateful termination possible.");
+            }
+        }
+        ));
         consumer.consumeMessages();
     }
 

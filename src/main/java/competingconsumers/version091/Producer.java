@@ -5,12 +5,14 @@ import competingconsumers.version091.polling.Consumer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Producer {
     private static final Logger log = Logger.getLogger(Producer.class.getName());
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
     private static final String TASK_QUEUE_NAME = "task_queue";
     private Channel channel;
     private ConnectionFactory factory;
@@ -47,8 +49,17 @@ public class Producer {
         }
     }
 
+    /**
+     * Closes the connection and counts down for thread termination.
+     * @throws IOException
+     */
     public void stop() throws IOException {
         log.info("Stopping producer...");
         connection.close();
+        countDownLatch.countDown();
+    }
+
+    public CountDownLatch getCountDownLatch() {
+        return countDownLatch;
     }
 }

@@ -96,7 +96,7 @@ public class Consumer {
     }
 
     /**
-     * Stops the consumption of messages.
+     * Interrupts the while-loop for message consumption and therefore triggers connection closing.
      */
     public void stop() {
         running.set(false);
