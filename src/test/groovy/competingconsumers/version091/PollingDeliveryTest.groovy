@@ -19,8 +19,6 @@ class PollingDeliveryTest extends Specification {
 
     def producer, consumer1, consumer2, queue
     def sentMessages = ["M1", "M2", "M3"]
-    def consumer1Queue = new LinkedBlockingQueue()
-    def consumer2Queue = new LinkedBlockingQueue()
 
     def "messages were consumed at least once"() {
         given:
@@ -51,23 +49,6 @@ class PollingDeliveryTest extends Specification {
         then:
         def receivedMessages = getReceivedMessages(4, Duration.ofSeconds(2), queue)
         receivedMessages.size() <= sentMessages.size()
-    }
-
-    def"messages were distributed to all consumers"() {
-        given:
-        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer1Queue::add)
-        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer2Queue::add)
-
-        when:
-        startConsumerAsynchron(consumer1)
-        startConsumerAsynchron(consumer2)
-
-        then:
-        def receivedMessagesConsumer1 = getReceivedMessages(2, Duration.ofSeconds(2), consumer1Queue)
-        !receivedMessagesConsumer1.isEmpty()
-
-        def receivedMessagesConsumer2 = getReceivedMessages(2, Duration.ofSeconds(2), consumer2Queue)
-        !receivedMessagesConsumer2.isEmpty()
     }
 
     def getReceivedMessages(int count, Duration timeoutPerPoll, LinkedBlockingQueue queue) {
