@@ -69,25 +69,64 @@ Exchanges and queues are completely independent of connections and channels. A c
 or consume from the same queue using multiple channels with one connection.
 
 ## Implementation of Messaging Patterns using RabbitMQ
+The SenderApplication and ReceiverApplication make it possible to test the code via the command line. To test
+the different implementations, the used libraries can simply be exchanged since both applications are accessing 
+the AMQPClient interface.
+
 ### Competing Consumers
 The Competing Consumers Pattern (also know as Point-to-Point) describes the scenario when one producer can publish
 messages to a messaging queue. Those messages can be processed by any of multiple consumers while each message will only be processed once.
 
 Further details: https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html
 
-The implementation of producer and consumer (including comments and further explanations) can be found at:
+The implementation of producers and consumers can be found at:
 ```
-/src/main/java/competingconsumers/
+/src/main/java/rabbitclients/version091/competingconsumers/
+/src/main/java/rabbitclients/version100/competingconsumers/
 ```
-The pattern is implemented using AMQP 1-0 and AMQP 0-9-1. For the latter, a polling consumer and eventdriven consumer
-implementation is available.
 
-### Publish-Subsribe
-...
+### Publish-Subscribe
+When using the Publish-Subscribe Pattern, one publisher can send messages to a queue from where they will be 
+consumed by EACH consumer that has subscribed to this queue. Usually, the subscribers need to be active
+at the same time when the messages are delivered to the queue. The pattern is often compared to television
+programs or radio stations where everybody can tune in and start consuming.
+
+Further details: https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html
+
+The implementation of producers and consumers can be found at:
+```
+/src/main/java/rabbitclients/version091/publishsubscribe/
+/src/main/java/rabbitclients/version100/publishsubscribe/
+```
+The publish-subscribe implementation for AMQP 1-0 has some [constraints and disadvantages](
+./src/main/java/rabbitclients/version100/publishsubscribe/README.md) which is why it probably
+should not be used practically.
 
 ### Consumer Group
 ...
 
 ## AMQP Version Interoperability
-...
+### AMQP 1-0 to AMQP 0-9-1
+If messages are sent by an AMQP 1-0 client and consumed using an AMQP 0-9-1 client, the consumer will get the message
+with extra bytes in the beginning.  
 
+**Example:**  
+- Sent message: M1  
+- Received message: �w�M1  
+
+These extra bytes are added by the client when the message is encoded into an AMQP-value or AMQP-sequence.
+To be able to read messages that were encoded in this way, the AMQP 0-9-1 client would need a corresponding decoder.
+
+The AMQP 1-0 protocol offers to send the message in the body section as AMQP-value, AMQP-sequence or as plain bytes.
+According to this definition, it would be possible to send the messages in byte-format so that the
+AMQP 0-9-1 clients do not need to decode them additionally. Unfortunately, the SwiftMQ client does only offer to
+send messages as AMQP-values or -sequences and not as plain bytes.
+
+### AMQP 0-9-1 to AMQP 1-0
+When messages are sent in AMQP 0-9-1 format, the plugin extracts the payload bytes and transforms them into an
+AMQP 1-0 message. This means that the payload is transferred in the data section of the AMQP 1-0 message.
+The receiving client then needs to transform the bytes into the desired data type.
+
+As mentioned in the paragraph above, the SwiftMQ client does not offer a method to send data in the data section
+of AMQP 1-0 messages. In contradiction to this, it is possible to read data from the data section and therefore, 
+to receive messages that were sent using AMQP 0-9-1.

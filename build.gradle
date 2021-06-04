@@ -31,6 +31,8 @@ dependencies {
     implementation group: 'com.swiftmq', name: 'swiftmq-client', version: '12.2.2'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+    implementation group: 'org.json', name: 'json', version: '20210307'
 
     // mandatory dependencies for using Spock
     compile "org.codehaus.groovy:groovy:3.0.7"
@@ -45,4 +47,3 @@ test {
         events "passed", "skipped", "failed"
     }
 }
-
