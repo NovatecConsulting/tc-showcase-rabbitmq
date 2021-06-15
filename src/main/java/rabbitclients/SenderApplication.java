@@ -1,6 +1,5 @@
 package rabbitclients;
 
-import rabbitclients.version100.publishsubscribe.Producer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +12,7 @@ public class SenderApplication {
     private static final int RABBIT_MQ_PORT = 5672;
     private static final int RABBIT_MQ_REST_PORT = 15672;
     private static final String HOST = "localhost";
-    private static AMQPClient sender;
+    private static AMQPProducer sender;
     private static AtomicBoolean running = new AtomicBoolean(true);
 
     public static void main(String[] args) throws Exception {
@@ -21,7 +20,7 @@ public class SenderApplication {
         //start(sender);
     }
 
-    private static void start(AMQPClient sender) throws IOException {
+    private static void start(AMQPProducer sender) throws IOException, InterruptedException {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 sender.stop();
@@ -38,7 +37,7 @@ public class SenderApplication {
      * Reads input from the console and sends it to the message broker.
      * @throws IOException if the input cannot be read
      */
-    private static void readMessages() throws IOException {
+    private static void readMessages() throws IOException, InterruptedException {
         while (running.get()) {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Enter a message. The number of dots contained denotes the complexity. 'Exit' will stop the program.");

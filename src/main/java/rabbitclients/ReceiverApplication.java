@@ -3,7 +3,7 @@ package rabbitclients;
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
-import rabbitclients.version100.publishsubscribe.Consumer;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -13,15 +13,15 @@ public class ReceiverApplication {
     private static final int RABBIT_MQ_PORT = 5672;
     private static final int RABBIT_MQ_REST_PORT = 15672;
     private static final String HOST = "localhost";
-    private static AMQPClient amqpClient;
+    private static AMQPConsumer receiver;
 
     public static void main(String[] args)
             throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
-        //amqpClient = new Consumer(HOST, RABBIT_MQ_PORT, RABBIT_MQ_REST_PORT, ReceiverApplication::doWork);
-        //start(amqpClient);
+        //receiver = new Consumer(HOST, RABBIT_MQ_PORT, RABBIT_MQ_REST_PORT, ReceiverApplication::doWork);
+        //start(receiver);
     }
 
-    private static void start(AMQPClient receiver) {
+    private static void start(AMQPConsumer receiver) throws IOException {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 receiver.stop();

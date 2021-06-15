@@ -4,17 +4,15 @@ import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.QoS;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
-import rabbitclients.AMQPClient;
-import rabbitclients.version100.BaseClient;
+import rabbitclients.RabbitMQConfig;
+import rabbitclients.version100.AbstractAMQPProducer;
 import java.io.IOException;
-import java.util.logging.Logger;
 
-public class Producer extends BaseClient implements AMQPClient {
-    private static final Logger log = Logger.getLogger(Producer.class.getName());
+public class Producer extends AbstractAMQPProducer {
 
-    public Producer(String host, int port)
+    public Producer(RabbitMQConfig rabbitMQConfig)
             throws AMQPException, UnsupportedProtocolVersionException, IOException, AuthenticationException {
-        super(host, port);
+        super(rabbitMQConfig);
 
         //according to AMQP 1.0 protocol: "attach" handshake:
         setProducerInstance(
@@ -25,9 +23,5 @@ public class Producer extends BaseClient implements AMQPClient {
     }
 
     @Override
-    public void stop() {
-        log.info("Stopping producer...");
-        getConnection().close();
-        getCountDownLatch().countDown();
-    }
+    public void prepareMessageExchange() { }
 }

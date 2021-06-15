@@ -1,4 +1,4 @@
-package rabbitclients.version100.publishsubscribe;
+package rabbitclients.version100.interoperability;
 
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
@@ -9,14 +9,16 @@ import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
 import rabbitclients.RabbitMQConfig;
 import rabbitclients.version100.AbstractAMQPConsumer;
+import rabbitclients.version100.publishsubscribe.Setup;
 import java.io.IOException;
 import java.util.function.Function;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Consumer extends AbstractAMQPConsumer {
+public class InteroperabilityConsumer extends AbstractAMQPConsumer {
 
-    public Consumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
+    public InteroperabilityConsumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
             throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
-        super(rabbitMQConfig, toAMQPConsumer(Consumer::extractMessage, messageHandler.andThen(System.out::println)));
+        super(rabbitMQConfig, toAMQPConsumer(InteroperabilityConsumer::extractMessage, messageHandler.andThen(System.out::println)));
         prepareMessageExchange();
 
         //according to AMQP 1.0 protocol: "attach" handshake:
@@ -32,17 +34,24 @@ public class Consumer extends AbstractAMQPConsumer {
     }
 
     /**
-     * Extracts the payload of an AMQP 1.0 message and returns it as String value.
-     * @param message
-     * @return
+     * Determines the AMQP version of the arriving message. The message payload is extracted according
+     * to the protocol version.
+     * @param message the AMQP message to be processed
+     * @return the extracted and decoded message payload
      */
     private static String extractMessage(AMQPMessage message) {
-        AMQPType type = message.getAmqpValue().getValue();
-        if (type instanceof AMQPString) {
-            return  ((AMQPString) type).getValue();
+        String messageValue = null;
+        if (message.getAmqpValue() != null) {
+            AMQPType type = message.getAmqpValue().getValue();
+            if (type instanceof AMQPString) {
+                messageValue = ((AMQPString) type).getValue();
+            }
+        } else {
+            messageValue = new String(message.getData().get(0).getValue(), UTF_8);
         }
-        return null;
+        return messageValue;
     }
+
 
     /**
      * Declares a new fanout exchange if it was not already created.
@@ -50,10 +59,6 @@ public class Consumer extends AbstractAMQPConsumer {
      * @throws IOException if exchange, queue or binding could not be declared
      */
     @Override
-    public void prepareMessageExchange() throws IOException {
-        Setup setup = new Setup(getRabbitMQConfig());
-        setup.createExchange(getExchangeName());
-        setup.createQueue(getQueueName());
-        setup.createBinding(getQueueName(), getExchangeName());
-    }
+    public void prepareMessageExchange() { }
 }
+

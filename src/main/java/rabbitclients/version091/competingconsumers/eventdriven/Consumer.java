@@ -1,20 +1,21 @@
 package rabbitclients.version091.competingconsumers.eventdriven;
 
 import com.rabbitmq.client.DeliverCallback;
-import rabbitclients.AMQPClient;
+import rabbitclients.AMQPConsumer;
+import rabbitclients.RabbitMQConfig;
 import rabbitclients.version091.BaseClient;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Consumer extends BaseClient implements AMQPClient {
+public class Consumer extends BaseClient implements AMQPConsumer {
     private static final Logger log = Logger.getLogger(Consumer.class.getName());
+    private String consumerTag;
 
-    public Consumer(String host, int port, java.util.function.Consumer<String> messageHandler)
+    public Consumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
             throws IOException, TimeoutException {
-        super(host, port, messageHandler);
+        super(rabbitMQConfig, messageHandler);
         prepareMessageExchange();
     }
 
@@ -36,7 +37,7 @@ public class Consumer extends BaseClient implements AMQPClient {
                 System.out.println("Done.");
                 getChannel().basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             };
-            getChannel().basicConsume(getQueueName(), false, deliverCallback, consumerTag -> {
+            consumerTag = getChannel().basicConsume(getQueueName(), false, deliverCallback, consumerTag -> {
             });
         } catch (IOException e) {
             log.warning("Message could not be consumed and acknowledged.");
@@ -47,7 +48,18 @@ public class Consumer extends BaseClient implements AMQPClient {
      * Declare a new queue on this session/channel if the queue was not already created.
      * @throws IOException if queue could not be declared
      */
+    @Override
     public void prepareMessageExchange() throws IOException {
         getChannel().queueDeclare(getQueueName(), false, false, false, null);
+    }
+
+    /**
+     * Cancel the message consumption and close the connection.
+     * @throws IOException
+     */
+    @Override
+    public void stop() throws IOException {
+        getChannel().basicCancel(consumerTag);
+        getConnection().close();
     }
 }

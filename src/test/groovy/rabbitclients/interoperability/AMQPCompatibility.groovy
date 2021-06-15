@@ -3,8 +3,9 @@ package rabbitclients.interoperability
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
+import rabbitclients.MockRabbitMQConfig
 import rabbitclients.version091.competingconsumers.Producer
-import rabbitclients.version100.competingconsumers.Consumer
+import rabbitclients.version100.interoperability.InteroperabilityConsumer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
@@ -21,16 +22,19 @@ class AMQPCompatibility extends Specification {
     @Shared
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withPluginsEnabled("rabbitmq_amqp1_0")
-            .withExposedPorts(5672)
+            .withExposedPorts(5672, 15672)
 
     def producer, consumer1, queue
     def sentMessages = ["M1", "M2", "M3"]
     def common = new Common()
+    def mappedPort = rabbitMQContainer.getMappedPort(5672)
+    def mappedManagementPort = rabbitMQContainer.getMappedPort(15672)
+    def mockEnvironment = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue", "task_exchange")
 
     def "consumed messages equal sent messages"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer1 = new InteroperabilityConsumer(mockEnvironment, queue::add)
 
         when:
         common.startConsumerAsynchron(consumer1)

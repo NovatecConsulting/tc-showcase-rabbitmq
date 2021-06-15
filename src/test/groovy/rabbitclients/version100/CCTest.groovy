@@ -3,6 +3,7 @@ package rabbitclients.version100
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
+import rabbitclients.MockRabbitMQConfig
 import rabbitclients.version100.competingconsumers.Consumer
 import rabbitclients.version100.competingconsumers.Producer
 import spock.lang.Shared
@@ -21,12 +22,14 @@ class CCTest extends Specification {
     def producer, consumer1, consumer2, queue
     def sentMessages = ["M1", "M2", "M3"]
     def common = new Common()
+    def mappedPort = rabbitMQContainer.getMappedPort(5672)
+    def mockEnvironment = new MockRabbitMQConfig(mappedPort, 15672,"task_queue1", "task_exchange")
 
     def "messages were consumed at least once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
-        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer1 = new Consumer(mockEnvironment, queue::add)
+        consumer2 = new Consumer(mockEnvironment, queue::add)
 
         when:
         common.startConsumerAsynchron(consumer1)
@@ -41,8 +44,8 @@ class CCTest extends Specification {
     def "messages were consumed at most once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
-        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), queue::add)
+        consumer1 = new Consumer(mockEnvironment, queue::add)
+        consumer2 = new Consumer(mockEnvironment, queue::add)
 
         when:
         common.startConsumerAsynchron(consumer1)
@@ -54,7 +57,7 @@ class CCTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer("localhost", rabbitMQContainer.getMappedPort(5672))
+        producer = new Producer(mockEnvironment)
         for (item in sentMessages) {
             producer.sendMessage(item)
         }

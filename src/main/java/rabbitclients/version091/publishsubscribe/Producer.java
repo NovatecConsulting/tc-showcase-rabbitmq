@@ -1,6 +1,8 @@
 package rabbitclients.version091.publishsubscribe;
 
-import rabbitclients.AMQPClient;
+import rabbitclients.AMQPProducer;
+import rabbitclients.RabbitMQConfig;
+import rabbitclients.Stoppable;
 import rabbitclients.version091.BaseClient;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -10,11 +12,11 @@ import static com.rabbitmq.client.BuiltinExchangeType.FANOUT;
 import static com.rabbitmq.client.MessageProperties.TEXT_PLAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Producer extends BaseClient implements AMQPClient {
+public class Producer extends BaseClient implements AMQPProducer, Stoppable {
     private static final Logger log = Logger.getLogger(Producer.class.getName());
 
-    public Producer(String host, int port) throws IOException, TimeoutException {
-        super(host, port);
+    public Producer(RabbitMQConfig rabbitMQConfig) throws IOException, TimeoutException {
+        super(rabbitMQConfig);
         prepareMessageExchange();
     }
 
@@ -36,7 +38,19 @@ public class Producer extends BaseClient implements AMQPClient {
      * Declares a new fanout exchange if it was not already created.
      * @throws IOException if exchange could not be declared
      */
+    @Override
     public void prepareMessageExchange() throws IOException {
         getChannel().exchangeDeclare(getExchangeName(), FANOUT);
+    }
+
+    @Override
+    public void stop() throws IOException {
+        log.info("Stopping client...");
+        if(getConnection() != null) {
+            getConnection().close();
+            getCountDownLatch().countDown();
+        }else {
+            log.severe("Connection could not be closed because it was never established.");
+        }
     }
 }

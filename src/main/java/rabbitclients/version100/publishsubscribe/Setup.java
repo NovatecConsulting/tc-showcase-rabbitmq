@@ -6,74 +6,63 @@ import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-
+import rabbitclients.RabbitMQConfig;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 public class Setup {
     private final HttpClient httpClient;
-    private final int port;
-    private HttpPut httpPut;
-    private HttpPost httpPost;
+    private final RabbitMQConfig rabbitMQConfig;
 
-    public Setup(int port) {
+    public Setup(RabbitMQConfig rabbitMQConfig) {
         httpClient = HttpClientBuilder.create().build();
-        this.port = port;
+        this.rabbitMQConfig = rabbitMQConfig;
     }
 
     public void createExchange(String exchangeName) throws IOException {
-        httpPut = new HttpPut("http://localhost:" + port + "/api/exchanges/%2f/" + exchangeName);
-        createHeader(httpPut);
+        HttpPut httpPut = new HttpPut(buildUri("/api/exchanges/%2f/" + exchangeName));
 
         StringEntity params = new StringEntity("{\"type\":\"fanout\",\"auto_delete\":false,\"durable\":false,\"internal\":false,\"arguments\":{}}");
         httpPut.setEntity(params);
-
-        httpClient.execute(httpPut);
+        send(httpPut);
     }
 
-    public String createQueueWithRandomName() throws IOException {
-        String queueName = generateRandomQueueName(16);
-        httpPut = new HttpPut("http://localhost:" + port + "/api/queues/%2f/" + queueName);
-        createHeader(httpPut);
+    public void send(HttpUriRequest httpRequest) throws IOException {
+        createHeader(httpRequest);
+        httpClient.execute(httpRequest);
+    }
+
+    public void createQueue(String queueName) throws IOException {
+        HttpPut httpPut = new HttpPut(buildUri("/api/queues/%2f/" + queueName));
 
         StringEntity params = new StringEntity("{\"auto_delete\":false,\"durable\":false,\"arguments\":{}}");
         httpPut.setEntity(params);
-
-        httpClient.execute(httpPut);
-        return queueName;
+        send(httpPut);
     }
 
-    public void createBinding(String exchangeName, String queueName) throws IOException {
-        httpPost = new HttpPost("http://localhost:" + port + "/api/bindings/%2f/e/" + exchangeName + "/q/" + queueName);
-        createHeader(httpPost);
+    public void createBinding(String queueName, String exchangeName) throws IOException {
+        HttpPost httpPost = new HttpPost(buildUri("/api/bindings/%2f/e/" + exchangeName + "/q/" + queueName));
 
         StringEntity params = new StringEntity("{\"routing_key\":\"" + queueName + "\",\"arguments\":{}}");
         httpPost.setEntity(params);
-
-        httpClient.execute(httpPost);
+        send(httpPost);
     }
 
     private void createHeader(HttpRequest httpRequest) {
         httpRequest.addHeader("content-type", "application/json");
 
-        String auth = "guest:guest";
+        String auth = rabbitMQConfig.getUser() + ":" + rabbitMQConfig.getPassword();
         byte[] encodedAuth = Base64.encodeBase64(
                 auth.getBytes(StandardCharsets.ISO_8859_1));
         String authHeader = "Basic " + new String(encodedAuth);
         httpRequest.addHeader(HttpHeaders.AUTHORIZATION, authHeader);
     }
 
-    public static String generateRandomQueueName(int length) {
-        Random rng = new Random();
-        String characters = "abcdefghijklmnopqrstuvwxyz1234567890";
-
-        char[] text = new char[length];
-        for (int i = 0; i < length; i++) {
-            text[i] = characters.charAt(rng.nextInt(characters.length()));
-        }
-        return new String(text);
+    private String buildUri(String uri) {
+        String uriBeginning = "http://" + rabbitMQConfig.getHost() + ":" + rabbitMQConfig.getManagementPort();
+        return uriBeginning + uri;
     }
 }

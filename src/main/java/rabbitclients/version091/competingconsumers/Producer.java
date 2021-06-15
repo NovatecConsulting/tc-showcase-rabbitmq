@@ -1,6 +1,8 @@
 package rabbitclients.version091.competingconsumers;
 
-import rabbitclients.AMQPClient;
+import rabbitclients.AMQPProducer;
+import rabbitclients.RabbitMQConfig;
+import rabbitclients.Stoppable;
 import rabbitclients.version091.BaseClient;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -9,11 +11,11 @@ import java.util.logging.Logger;
 import static com.rabbitmq.client.MessageProperties.TEXT_PLAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Producer extends BaseClient implements AMQPClient {
+public class Producer extends BaseClient implements AMQPProducer, Stoppable {
     private static final Logger log = Logger.getLogger(Producer.class.getName());
 
-    public Producer(String host, int port) throws IOException, TimeoutException {
-        super(host, port);
+    public Producer(RabbitMQConfig rabbitMQConfig) throws IOException, TimeoutException {
+        super(rabbitMQConfig);
         prepareMessageExchange();
     }
 
@@ -35,7 +37,15 @@ public class Producer extends BaseClient implements AMQPClient {
      * Declare a new queue on this session/channel if the queue was not already created.
      * @throws IOException if queue could not be declared
      */
+    @Override
     public void prepareMessageExchange() throws IOException {
         getChannel().queueDeclare(getQueueName(), false, false, false, null);
+    }
+
+    @Override
+    public void stop() throws IOException {
+        log.info("Stopping client...");
+        getConnection().close();
+        getCountDownLatch().countDown();
     }
 }

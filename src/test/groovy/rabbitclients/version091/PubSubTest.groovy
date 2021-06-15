@@ -3,6 +3,7 @@ package rabbitclients.version091
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
+import rabbitclients.MockRabbitMQConfig
 import rabbitclients.version091.publishsubscribe.Consumer
 import rabbitclients.version091.publishsubscribe.Producer
 import spock.lang.Shared
@@ -21,12 +22,16 @@ class PubSubTest extends Specification {
     def sentMessages = ["M1", "M2", "M3"]
     def consumer1Queue = new LinkedBlockingQueue()
     def consumer2Queue = new LinkedBlockingQueue()
-    def common = new Common();
+    def common = new Common()
+    def mappedPort = rabbitMQContainer.getMappedPort(5672)
+    def mockEnvironment1 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue1", "task_exchange")
+    def mockEnvironment2 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue2", "task_exchange")
+    def mockEnvironment3 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue3", "task_exchange")
 
     def"messages were consumed by all consumers"() {
         given:
-        consumer1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer1Queue::add)
-        consumer2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), consumer2Queue::add)
+        consumer1 = new Consumer(mockEnvironment1, consumer1Queue::add)
+        consumer2 = new Consumer(mockEnvironment2, consumer2Queue::add)
         for(item in sentMessages) {
             producer.sendMessage(item)
         }
@@ -46,7 +51,7 @@ class PubSubTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer("localhost", rabbitMQContainer.getMappedPort(5672))
+        producer = new Producer(mockEnvironment3)
     }
 
     def cleanup() {

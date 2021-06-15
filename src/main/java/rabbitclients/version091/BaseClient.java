@@ -3,32 +3,30 @@ package rabbitclients.version091;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import rabbitclients.RabbitMQConfig;
+import rabbitclients.Stoppable;
+
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public abstract class BaseClient {
-    private static final String TASK_QUEUE_NAME = "task_queue";
-    private static final String TASK_EXCHANGE_NAME = "task_exchange";
-    private static final Logger log = Logger.getLogger(BaseClient.class.getName());
-    private final String host;
-    private final int port;
+    private RabbitMQConfig rabbitMQConfig;
     private java.util.function.Consumer<String> messageHandler;
     private Channel channel;
     private Connection connection;
     private CountDownLatch countDownLatch = new CountDownLatch(1);
 
-    public BaseClient(String host, int port, java.util.function.Consumer<String> messageHandler) throws IOException, TimeoutException {
+    public BaseClient(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
+            throws IOException, TimeoutException {
+        this.rabbitMQConfig = rabbitMQConfig;
         this.messageHandler = messageHandler;
-        this.host = host;
-        this.port = port;
         initializeClient();
     }
 
-    public BaseClient(String host, int port) throws IOException, TimeoutException {
-        this.host = host;
-        this.port = port;
+    public BaseClient(RabbitMQConfig rabbitMQConfig) throws IOException, TimeoutException {
+        this.rabbitMQConfig = rabbitMQConfig;
         initializeClient();
     }
 
@@ -40,8 +38,8 @@ public abstract class BaseClient {
 
     public void createConnection() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(host);
-        factory.setPort(port);
+        factory.setHost(rabbitMQConfig.getHost());
+        factory.setPort(rabbitMQConfig.getPort());
         connection = factory.newConnection();
     }
 
@@ -49,12 +47,6 @@ public abstract class BaseClient {
         if(connection != null) {
             channel = connection.createChannel();
         }
-    }
-
-    public void stop() throws IOException {
-        log.info("Stopping client...");
-        connection.close();
-        countDownLatch.countDown();
     }
 
     public CountDownLatch getCountDownLatch() {
@@ -65,21 +57,21 @@ public abstract class BaseClient {
         return channel;
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public String getQueueName() {
-        return TASK_QUEUE_NAME;
+        return rabbitMQConfig.getQueueName();
     }
 
     public String getExchangeName() {
-        return TASK_EXCHANGE_NAME;
+        return rabbitMQConfig.getExchangeName();
     }
 
     public java.util.function.Consumer<String> getMessageHandler() {
         return messageHandler;
     }
 
-    public abstract void prepareMessageExchange() throws IOException;
-
-    public void consumeMessages() { }
-
-    public void sendMessage(String message) { }
+    protected abstract void prepareMessageExchange() throws IOException;
 }

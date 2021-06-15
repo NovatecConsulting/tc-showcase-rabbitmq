@@ -3,10 +3,12 @@ package rabbitclients.version100
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
+import rabbitclients.MockRabbitMQConfig
 import rabbitclients.version100.publishsubscribe.Consumer
 import rabbitclients.version100.publishsubscribe.Producer
 import spock.lang.Shared
 import spock.lang.Specification
+
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -23,12 +25,18 @@ class PubSubTest extends Specification {
     def subscriber1Queue = new LinkedBlockingQueue()
     def subscriber2Queue = new LinkedBlockingQueue()
     def common = new Common()
+    def mappedPort = rabbitMQContainer.getMappedPort(5672)
+    def mappedManagementPort = rabbitMQContainer.getMappedPort(15672)
+    def mockEnvironment1 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue1", "task_exchange")
+    def mockEnvironment2 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue2", "task_exchange")
+    def mockEnvironment3 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue3", "task_exchange")
 
     def "messages were consumed at least once"() {
         given:
         queue = new LinkedBlockingQueue()
-        subscriber1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), rabbitMQContainer.getMappedPort(15672), subscriber1Queue::add)
-        subscriber2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), rabbitMQContainer.getMappedPort(15672), subscriber2Queue::add)
+
+        subscriber1 = new Consumer(mockEnvironment1, subscriber1Queue::add)
+        subscriber2 = new Consumer(mockEnvironment2, subscriber2Queue::add)
         for (item in sentMessages) {
             publisher.sendMessage(item)
         }
@@ -45,8 +53,8 @@ class PubSubTest extends Specification {
     def "messages were consumed at most once"() {
         given:
         queue = new LinkedBlockingQueue()
-        subscriber1 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), rabbitMQContainer.getMappedPort(15672), subscriber1Queue::add)
-        subscriber2 = new Consumer("localhost", rabbitMQContainer.getMappedPort(5672), rabbitMQContainer.getMappedPort(15672), subscriber2Queue::add)
+        subscriber1 = new Consumer(mockEnvironment1, subscriber1Queue::add)
+        subscriber2 = new Consumer(mockEnvironment2, subscriber2Queue::add)
         for (item in sentMessages) {
             publisher.sendMessage(item)
         }
@@ -79,7 +87,7 @@ class PubSubTest extends Specification {
     }
 
     def setup() {
-        publisher = new Producer("localhost", rabbitMQContainer.getMappedPort(5672), rabbitMQContainer.getMappedPort(15672))
+        publisher = new Producer(mockEnvironment3)
     }
 
     def cleanup() {
