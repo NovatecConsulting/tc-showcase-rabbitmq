@@ -1,20 +1,16 @@
-package rabbitclients.version100;
+package rabbitclients.version100.swiftmq;
 
 import com.swiftmq.amqp.AMQPContext;
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
-import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
-
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 public abstract class BaseClient {
     private final RabbitMQConfig rabbitMQConfig;
     private java.util.function.Consumer<AMQPMessage> messageHandler;
     private Connection connection;
     private Session session;
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public BaseClient(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<AMQPMessage> messageHandler)
             throws IOException, ConnectionClosedException, UnsupportedProtocolVersionException,
@@ -29,10 +25,6 @@ public abstract class BaseClient {
             AuthenticationException, SessionHandshakeException {
         this.rabbitMQConfig = rabbitMQConfig;
         initializeClient();
-    }
-
-    public java.util.function.Consumer<AMQPMessage> getMessageHandler() {
-        return messageHandler;
     }
 
     private void initializeClient()
@@ -58,6 +50,10 @@ public abstract class BaseClient {
         session = connection.createSession(10, 10); //"begin" handshake
     }
 
+    public java.util.function.Consumer<AMQPMessage> getMessageHandler() {
+        return messageHandler;
+    }
+
     protected Session getSession() {
         return session;
     }
@@ -72,10 +68,6 @@ public abstract class BaseClient {
 
     protected String getExchangeName() {
         return rabbitMQConfig.getExchangeName();
-    }
-
-    public CountDownLatch getCountDownLatch() {
-        return countDownLatch;
     }
 
     protected RabbitMQConfig getRabbitMQConfig() {

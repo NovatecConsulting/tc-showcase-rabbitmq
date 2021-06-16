@@ -1,19 +1,19 @@
-package rabbitclients.version100;
+package rabbitclients.version100.swiftmq;
 
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import rabbitclients.AMQPConsumer;
 import rabbitclients.RabbitMQConfig;
-import rabbitclients.Stoppable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPConsumer, Stoppable {
-    private static final Logger log = Logger.getLogger(BaseClient.class.getName());
+public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPConsumer, Runnable {
+    private static final Logger log = Logger.getLogger(AbstractAMQPConsumer.class.getName());
     private AtomicBoolean running = new AtomicBoolean(true);
     private Consumer consumerInstance;
+    private Thread getMessage;
 
     public AbstractAMQPConsumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<AMQPMessage> messageHandler)
             throws UnsupportedProtocolVersionException, SessionHandshakeException, ConnectionClosedException,
@@ -22,28 +22,28 @@ public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPCon
     }
 
     /**
-     * Consumes messages using a while-loop.
+     * Starts consumption of new messages in a new thread.
      */
     @Override
     public void consumeMessages() {
+        System.out.println(" ... Waiting for messages. To exit press CTRL+C");
+        getMessage = new Thread(this); //get messages in polling behaviour in new thread
+        getMessage.start();
+    }
+
+    /**
+     * Consumes new messages in a while-loop.
+     */
+    @Override
+    public void run() {
         try {
             while (running.get()) {
                 receiveMessage();
             }
         } finally {
             log.info("Stopping client...");
-            if(getConnection() != null) {
-                getConnection().close();
-                getCountDownLatch().countDown();
-            }else {
-                log.severe("Connection could not be closed because it was never established.");
-            }
+            getConnection().close();
         }
-    }
-
-    @Override
-    public void stop() {
-        running.set(false);
     }
 
     /**
@@ -72,6 +72,16 @@ public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPCon
                 log.severe("Consumed message was in an invalid state. Unexpected behavior!");
             }
         }
+    }
+
+    /**
+     * Stop the message consumption while-loop and join the thread.
+     * @throws InterruptedException
+     */
+    @Override
+    public void stop() throws InterruptedException {
+        running.set(false);
+        getMessage.join();
     }
 
     protected void setConsumerInstance(Consumer consumer) {

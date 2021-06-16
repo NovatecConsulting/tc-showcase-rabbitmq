@@ -36,16 +36,6 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     }
 
     /**
-     * Declare a new queue on this session/channel if the queue was not already created.
-     *
-     * @throws IOException if queue could not be declared
-     */
-    @Override
-    public void prepareMessageExchange() throws IOException {
-        getChannel().queueDeclare(getQueueName(), false, false, false, null);
-    }
-
-    /**
      * Receive and acknowledge new messages from the broker using a while-loop and basicGet()-method.
      */
     @Override
@@ -77,12 +67,21 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     }
 
     /**
+     * Declare a new queue on this session/channel if the queue was not already created.
+     * @throws IOException if queue could not be declared
+     */
+    @Override
+    public void prepareMessageExchange() throws IOException {
+        getChannel().queueDeclare(getQueueName(), false, false, false, null);
+    }
+
+    /**
      * Stop the message consumption while-loop and join the thread.
-     *
      * @throws InterruptedException
      */
     @Override
     public void stop() throws InterruptedException {
+        log.info("Stopping client...");
         running.set(false);
         getMessage.join();
     }

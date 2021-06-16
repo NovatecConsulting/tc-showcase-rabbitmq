@@ -1,11 +1,9 @@
-package rabbitclients.version100
+package rabbitclients.version100.qpidjms
 
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
 import rabbitclients.MockRabbitMQConfig
-import rabbitclients.version100.competingconsumers.Consumer
-import rabbitclients.version100.competingconsumers.Producer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
@@ -32,8 +30,8 @@ class CCTest extends Specification {
         consumer2 = new Consumer(mockEnvironment, queue::add)
 
         when:
-        common.startConsumerAsynchron(consumer1)
-        common.startConsumerAsynchron(consumer2)
+        consumer1.consumeMessages()
+        consumer2.consumeMessages()
 
         then:
         def receivedMessages = common.getReceivedMessages(3, Duration.ofSeconds(2), queue)
@@ -48,8 +46,8 @@ class CCTest extends Specification {
         consumer2 = new Consumer(mockEnvironment, queue::add)
 
         when:
-        common.startConsumerAsynchron(consumer1)
-        common.startConsumerAsynchron(consumer2)
+        consumer1.consumeMessages()
+        consumer2.consumeMessages()
 
         then:
         def receivedMessages = common.getReceivedMessages(4, Duration.ofSeconds(2), queue)

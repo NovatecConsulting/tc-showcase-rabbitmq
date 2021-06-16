@@ -17,6 +17,6 @@ suitable for the publish-subscribe pattern.
 
 In this repository, the Setup-class implements methods for the creation of exchanges, queues and bindings via REST. 
 The entities that are created with HTTP methods are not client-bound and therefore cannot be created as "exclusive".
-This has the disadvantage that the queues are not automatically deleted when the client disconnects from the broker.
+Automatic deletion can be achieved through other queue properties like auto-delete and TTL (see root README for more details).
 In addition, the REST API does not offer to create queues without names to let the broker choose a (temporary) unique
 queue name. This leads to the constraint, that unique names have to be managed by the application.

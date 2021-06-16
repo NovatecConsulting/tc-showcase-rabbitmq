@@ -1,5 +1,10 @@
 package rabbitclients;
 
+/**
+ * Mocks RabbitMQ configurations that are usually needed for tests.
+ * Port, port of the management API, queue names and exchange names need to be injectable
+ * because they are dependent from the test scenario.
+ */
 public class MockRabbitMQConfig implements RabbitMQConfig{
     private static final String HOST = "localhost";
     private static final String USER = "guest";

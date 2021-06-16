@@ -46,6 +46,5 @@ public class Producer extends BaseClient implements AMQPProducer, Stoppable {
     public void stop() throws IOException {
         log.info("Stopping client...");
         getConnection().close();
-        getCountDownLatch().countDown();
     }
 }

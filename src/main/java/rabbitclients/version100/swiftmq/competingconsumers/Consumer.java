@@ -1,4 +1,4 @@
-package rabbitclients.version100.competingconsumers;
+package rabbitclients.version100.swiftmq.competingconsumers;
 
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
@@ -8,7 +8,7 @@ import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
 import rabbitclients.RabbitMQConfig;
-import rabbitclients.version100.AbstractAMQPConsumer;
+import rabbitclients.version100.swiftmq.AbstractAMQPConsumer;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -27,7 +27,8 @@ public class Consumer extends AbstractAMQPConsumer {
         );
     }
 
-    private static  java.util.function.Consumer<AMQPMessage> toAMQPConsumer(Function<AMQPMessage, String> mapper, java.util.function.Consumer<String> messageHandler) {
+    private static java.util.function.Consumer<AMQPMessage> toAMQPConsumer(
+            Function<AMQPMessage, String> mapper, java.util.function.Consumer<String> messageHandler) {
         return message -> messageHandler.accept(mapper.apply(message));
     }
 
@@ -44,6 +45,9 @@ public class Consumer extends AbstractAMQPConsumer {
         return null;
     }
 
+    /**
+     * No exchange preparation needed.
+     */
     @Override
     public void prepareMessageExchange() { }
 }

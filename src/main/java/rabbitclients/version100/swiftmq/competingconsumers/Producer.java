@@ -1,11 +1,11 @@
-package rabbitclients.version100.competingconsumers;
+package rabbitclients.version100.swiftmq.competingconsumers;
 
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.QoS;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
 import rabbitclients.RabbitMQConfig;
-import rabbitclients.version100.AbstractAMQPProducer;
+import rabbitclients.version100.swiftmq.AbstractAMQPProducer;
 import java.io.IOException;
 
 public class Producer extends AbstractAMQPProducer {
@@ -22,6 +22,9 @@ public class Producer extends AbstractAMQPProducer {
         );
     }
 
+    /**
+     * No exchange preparation needed.
+     */
     @Override
     public void prepareMessageExchange() { }
 }

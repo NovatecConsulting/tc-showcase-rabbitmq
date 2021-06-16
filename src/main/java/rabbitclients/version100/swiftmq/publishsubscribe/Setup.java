@@ -1,4 +1,4 @@
-package rabbitclients.version100.publishsubscribe;
+package rabbitclients.version100.swiftmq.publishsubscribe;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
@@ -22,6 +22,11 @@ public class Setup {
         this.rabbitMQConfig = rabbitMQConfig;
     }
 
+    /**
+     * Creates a new fanout exchange with default-configurations: no auto-deletion, not durable
+     * @param exchangeName name of the new fanout exchange
+     * @throws IOException
+     */
     public void createExchange(String exchangeName) throws IOException {
         HttpPut httpPut = new HttpPut(buildUri("/api/exchanges/%2f/" + exchangeName));
 
@@ -30,11 +35,11 @@ public class Setup {
         send(httpPut);
     }
 
-    public void send(HttpUriRequest httpRequest) throws IOException {
-        createHeader(httpRequest);
-        httpClient.execute(httpRequest);
-    }
-
+    /**
+     * Creates a new queue with default-configurations: no auto-deletion, not durable.
+     * @param queueName name of the new queue
+     * @throws IOException
+     */
     public void createQueue(String queueName) throws IOException {
         HttpPut httpPut = new HttpPut(buildUri("/api/queues/%2f/" + queueName));
 
@@ -43,6 +48,12 @@ public class Setup {
         send(httpPut);
     }
 
+    /**
+     * Creates a new binding between the queue and the exchange. The queue's name will be used as routing key.
+     * @param queueName name of the queue to bind
+     * @param exchangeName name of the exchange to bind
+     * @throws IOException
+     */
     public void createBinding(String queueName, String exchangeName) throws IOException {
         HttpPost httpPost = new HttpPost(buildUri("/api/bindings/%2f/e/" + exchangeName + "/q/" + queueName));
 
@@ -51,6 +62,10 @@ public class Setup {
         send(httpPost);
     }
 
+    /**
+     * Creates a new Http Header for authentication.
+     * @param httpRequest
+     */
     private void createHeader(HttpRequest httpRequest) {
         httpRequest.addHeader("content-type", "application/json");
 
@@ -64,5 +79,10 @@ public class Setup {
     private String buildUri(String uri) {
         String uriBeginning = "http://" + rabbitMQConfig.getHost() + ":" + rabbitMQConfig.getManagementPort();
         return uriBeginning + uri;
+    }
+
+    private void send(HttpUriRequest httpRequest) throws IOException {
+        createHeader(httpRequest);
+        httpClient.execute(httpRequest);
     }
 }

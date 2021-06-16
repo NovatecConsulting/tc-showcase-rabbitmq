@@ -4,19 +4,14 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import rabbitclients.RabbitMQConfig;
-import rabbitclients.Stoppable;
-
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
 public abstract class BaseClient {
     private RabbitMQConfig rabbitMQConfig;
     private java.util.function.Consumer<String> messageHandler;
     private Channel channel;
     private Connection connection;
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public BaseClient(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
             throws IOException, TimeoutException {
@@ -36,21 +31,17 @@ public abstract class BaseClient {
         prepareMessageExchange();
     }
 
-    public void createConnection() throws IOException, TimeoutException {
+    private void createConnection() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(rabbitMQConfig.getHost());
         factory.setPort(rabbitMQConfig.getPort());
         connection = factory.newConnection();
     }
 
-    public void createSession() throws IOException {
+    private void createSession() throws IOException {
         if(connection != null) {
             channel = connection.createChannel();
         }
-    }
-
-    public CountDownLatch getCountDownLatch() {
-        return countDownLatch;
     }
 
     public Channel getChannel() {

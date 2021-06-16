@@ -1,11 +1,9 @@
-package rabbitclients.version100
+package rabbitclients.version100.swiftmq.publishsubscribe
 
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
 import rabbitclients.MockRabbitMQConfig
-import rabbitclients.version100.publishsubscribe.Consumer
-import rabbitclients.version100.publishsubscribe.Producer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -42,8 +40,8 @@ class PubSubTest extends Specification {
         }
 
         when:
-        common.startConsumerAsynchron(subscriber1)
-        common.startConsumerAsynchron(subscriber2)
+        subscriber1.consumeMessages()
+        subscriber2.consumeMessages()
 
         then:
         checkSentGreaterEqualsReceived(subscriber1Queue)
@@ -60,8 +58,8 @@ class PubSubTest extends Specification {
         }
 
         when:
-        common.startConsumerAsynchron(subscriber1)
-        common.startConsumerAsynchron(subscriber2)
+        subscriber1.consumeMessages()
+        subscriber2.consumeMessages()
 
         then:
         checkSentLessEqualsReceived(subscriber1Queue)

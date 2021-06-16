@@ -1,11 +1,11 @@
-package rabbitclients.version100.publishsubscribe;
+package rabbitclients.version100.swiftmq.publishsubscribe;
 
 import com.swiftmq.amqp.v100.client.AMQPException;
 import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.QoS;
 import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
 import rabbitclients.RabbitMQConfig;
-import rabbitclients.version100.AbstractAMQPProducer;
+import rabbitclients.version100.swiftmq.AbstractAMQPProducer;
 import java.io.IOException;
 
 public class Producer extends AbstractAMQPProducer {
@@ -26,8 +26,7 @@ public class Producer extends AbstractAMQPProducer {
 
     /**
      * Declares a new fanout exchange if it was not already created.
-     * Declares a new queue with a random name and a binding between this queue and the exchange.
-     * @throws IOException if exchange, queue or binding could not be declared
+     * @throws IOException the exchange could not be declared
      */
     @Override
     public void prepareMessageExchange() throws IOException {

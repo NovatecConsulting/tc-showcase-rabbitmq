@@ -59,6 +59,7 @@ public class Consumer extends BaseClient implements AMQPConsumer {
      */
     @Override
     public void stop() throws IOException {
+        log.info("Stopping client...");
         getChannel().basicCancel(consumerTag);
         getConnection().close();
     }

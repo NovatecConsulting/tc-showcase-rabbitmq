@@ -1,4 +1,4 @@
-package rabbitclients.version100;
+package rabbitclients.version100.swiftmq;
 
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.generated.messaging.message_format.AmqpValue;
@@ -6,7 +6,6 @@ import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import rabbitclients.AMQPProducer;
 import rabbitclients.RabbitMQConfig;
-
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -39,13 +38,8 @@ public abstract class AbstractAMQPProducer extends BaseClient implements AMQPPro
 
     @Override
     public void stop() {
-        log.info("Stopping producer...");
-        if(getConnection() != null) {
-            getConnection().close();
-            getCountDownLatch().countDown();
-        }else {
-            log.severe("Connection could not be closed because it was never established.");
-        }
+        log.info("Stopping client...");
+        getConnection().close();
     }
 
     protected void setProducerInstance(Producer producer) {

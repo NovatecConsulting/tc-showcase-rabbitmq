@@ -1,7 +1,5 @@
 package rabbitclients;
 
-import java.util.List;
-
 public interface RabbitMQConfig {
 
     String getHost();

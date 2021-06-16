@@ -22,7 +22,7 @@ public class ReceiverApplication {
     }
 
     private static void start(AMQPConsumer receiver) throws IOException {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        /*Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 receiver.stop();
                 receiver.getCountDownLatch().await(10, TimeUnit.SECONDS);
@@ -30,7 +30,7 @@ public class ReceiverApplication {
                 log.severe("No grateful termination possible.");
             }
         }));
-        receiver.consumeMessages();
+        receiver.consumeMessages();*/
     }
 
     /**

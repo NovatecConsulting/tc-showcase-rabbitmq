@@ -21,7 +21,7 @@ public class SenderApplication {
     }
 
     private static void start(AMQPProducer sender) throws IOException, InterruptedException {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        /*Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 sender.stop();
                 sender.getCountDownLatch().await(10, TimeUnit.SECONDS);
@@ -30,7 +30,7 @@ public class SenderApplication {
             }
         }
         ));
-        readMessages();
+        readMessages();*/
     }
 
     /**
@@ -38,7 +38,7 @@ public class SenderApplication {
      * @throws IOException if the input cannot be read
      */
     private static void readMessages() throws IOException, InterruptedException {
-        while (running.get()) {
+        /*while (running.get()) {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Enter a message. The number of dots contained denotes the complexity. 'Exit' will stop the program.");
             String message = br.readLine();
@@ -48,7 +48,6 @@ public class SenderApplication {
                 sender.sendMessage(message);
             }
         }
-        sender.stop();
+        sender.stop();*/
     }
 }
-

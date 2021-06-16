@@ -43,14 +43,13 @@ public class Producer extends BaseClient implements AMQPProducer, Stoppable {
         getChannel().exchangeDeclare(getExchangeName(), FANOUT);
     }
 
+    /**
+     * Closes the connection and counts down for graceful termination.
+     * @throws IOException
+     */
     @Override
     public void stop() throws IOException {
         log.info("Stopping client...");
-        if(getConnection() != null) {
-            getConnection().close();
-            getCountDownLatch().countDown();
-        }else {
-            log.severe("Connection could not be closed because it was never established.");
-        }
+        getConnection().close();
     }
 }

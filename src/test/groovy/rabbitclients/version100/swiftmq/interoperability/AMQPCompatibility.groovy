@@ -1,11 +1,10 @@
-package rabbitclients.interoperability
+package rabbitclients.version100.swiftmq.interoperability
 
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
 import rabbitclients.MockRabbitMQConfig
 import rabbitclients.version091.competingconsumers.Producer
-import rabbitclients.version100.interoperability.InteroperabilityConsumer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
@@ -37,7 +36,7 @@ class AMQPCompatibility extends Specification {
         consumer1 = new InteroperabilityConsumer(mockEnvironment, queue::add)
 
         when:
-        common.startConsumerAsynchron(consumer1)
+        consumer1.consumeMessages()
 
         then:
         def receivedMessages = common.getReceivedMessages(3, Duration.ofSeconds(2), queue)
@@ -46,7 +45,7 @@ class AMQPCompatibility extends Specification {
     }
 
     def setup() {
-        producer = new Producer("localhost", rabbitMQContainer.getMappedPort(5672))
+        producer = new Producer(mockEnvironment)
         for (item in sentMessages) {
             producer.sendMessage(item)
         }

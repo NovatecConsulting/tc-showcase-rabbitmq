@@ -15,8 +15,4 @@ class Common {
         }
         return allConsumedMessages
     }
-
-    def startConsumerAsynchron(AMQPConsumer consumer) {
-        new Thread(() -> consumer.consumeMessages()).start()
-    }
 }

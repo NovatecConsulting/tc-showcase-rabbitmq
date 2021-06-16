@@ -10,7 +10,6 @@ RabbitMQ is a versatile message broker that supports various messaging patterns.
 
 - Competing Consumers
 - Publish-Subscribe Channel
-- Consumer Group (consume messages in both, Publish-Subscribe Channel and Competing Consumers semantics)
 
 ### Prerequisites
 A local RabbitMQ installation can be used to run the code.
@@ -102,9 +101,6 @@ The publish-subscribe implementation for AMQP 1-0 has some [constraints and disa
 ./src/main/java/rabbitclients/version100/publishsubscribe/README.md) which is why it probably
 should not be used practically.
 
-### Consumer Group
-...
-
 ## AMQP Version Interoperability
 ### AMQP 1-0 to AMQP 0-9-1
 If messages are sent by an AMQP 1-0 client and consumed using an AMQP 0-9-1 client, the consumer will get the message
@@ -130,3 +126,26 @@ The receiving client then needs to transform the bytes into the desired data typ
 As mentioned in the paragraph above, the SwiftMQ client does not offer a method to send data in the data section
 of AMQP 1-0 messages. In contradiction to this, it is possible to read data from the data section and therefore, 
 to receive messages that were sent using AMQP 0-9-1.
+
+## Queue Properties: Auto-deletion, Exclusivity, TTL and Durability
+1. auto-delete  
+Queues declared with the auto-delete property will be deleted when all consumers have finished using it. 
+The last consumer can be cancelled explicitly (channel.basicCancel(consumerTag)) or by closing its
+channel (session in case of SwiftMQ).
+
+2. exclusive  
+Exclusive queues can only be accessed by the current connection.
+Therefore, they are deleted as soon as the connection(!) closes.
+It is not possible to declare an exclusive queue from an external connection.
+This is also the reason why it is not possible to declare an exlusive queue using 
+the RabbitMQ Java client and to subscribe to it with an AMQP 1.0 client connection.
+
+3. TTL  
+The TTL-property can be used to avoid deletion of queues in cases
+when a consumer shortly disconnects and then re-connects to the queue.
+The corresponding queue will only be deleted if it stays unused for the defined
+time limit.
+
+4. durable  
+Metadata of durable queues is stored on disk while metadata of transient queues is stored in memory. 
+Therefore, transient queues and their messages will not be recovered after node restart.
