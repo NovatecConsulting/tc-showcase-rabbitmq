@@ -16,8 +16,7 @@ public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPCon
     private Thread getMessage;
 
     public AbstractAMQPConsumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<AMQPMessage> messageHandler)
-            throws UnsupportedProtocolVersionException, SessionHandshakeException, ConnectionClosedException,
-            AuthenticationException, IOException {
+            throws IOException {
         super(rabbitMQConfig, messageHandler);
     }
 

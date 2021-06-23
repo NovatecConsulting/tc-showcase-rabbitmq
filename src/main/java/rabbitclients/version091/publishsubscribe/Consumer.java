@@ -2,7 +2,9 @@ package rabbitclients.version091.publishsubscribe;
 
 import com.rabbitmq.client.DeliverCallback;
 import rabbitclients.AMQPConsumer;
+import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
+import rabbitclients.ReceiverApplication;
 import rabbitclients.version091.BaseClient;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -18,7 +20,6 @@ public class Consumer extends BaseClient implements AMQPConsumer {
     public Consumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
             throws IOException, TimeoutException {
         super(rabbitMQConfig, messageHandler);
-        prepareMessageExchange();
     }
 
     /**
@@ -67,5 +68,15 @@ public class Consumer extends BaseClient implements AMQPConsumer {
         log.info("Stopping client...");
         getChannel().basicCancel(consumerTag);
         getConnection().close();
+    }
+
+    /**
+     * Start and test this consumer as a console application.
+     * @param args
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(String[] args) throws IOException, TimeoutException {
+        new ReceiverApplication(worker -> new Consumer(new EnvRabbitMQConfig(), worker)).start();
     }
 }

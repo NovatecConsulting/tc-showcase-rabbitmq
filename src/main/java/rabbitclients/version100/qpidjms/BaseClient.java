@@ -3,23 +3,27 @@ package rabbitclients.version100.qpidjms;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import rabbitclients.RabbitMQConfig;
 import javax.jms.*;
+import java.io.IOException;
 
 public abstract class BaseClient {
-    private java.util.function.Consumer<String> messageHandler;
-    private RabbitMQConfig rabbitMQConfig;
+    private final java.util.function.Consumer<String> messageHandler;
+    private final RabbitMQConfig rabbitMQConfig;
     private Connection connection;
     private Session session;
 
     public BaseClient(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
-            throws JMSException {
+            throws IOException {
         this.messageHandler = messageHandler;
         this.rabbitMQConfig = rabbitMQConfig;
-        initialize();
+        try {
+            initialize();
+        } catch (JMSException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
-    public BaseClient(RabbitMQConfig rabbitMQConfig) throws JMSException {
-        this.rabbitMQConfig = rabbitMQConfig;
-        initialize();
+    public BaseClient(RabbitMQConfig rabbitMQConfig) throws IOException {
+        this(rabbitMQConfig, null);
     }
 
     private void initialize() throws JMSException {

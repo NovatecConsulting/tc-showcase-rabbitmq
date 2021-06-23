@@ -3,7 +3,7 @@ package rabbitclients.version091
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
-import rabbitclients.MockRabbitMQConfig
+import rabbitclients.EnvRabbitMQConfig
 import rabbitclients.version091.publishsubscribe.Consumer
 import rabbitclients.version091.publishsubscribe.Producer
 import spock.lang.Shared
@@ -18,20 +18,16 @@ class PubSubTest extends Specification {
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withExposedPorts(5672)
 
-    def producer, consumer1, consumer2
+    def producer, consumer1, consumer2, environment1, environment2, environment3
     def sentMessages = ["M1", "M2", "M3"]
     def consumer1Queue = new LinkedBlockingQueue()
     def consumer2Queue = new LinkedBlockingQueue()
     def common = new Common()
-    def mappedPort = rabbitMQContainer.getMappedPort(5672)
-    def mockEnvironment1 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue1", "task_exchange")
-    def mockEnvironment2 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue2", "task_exchange")
-    def mockEnvironment3 = new MockRabbitMQConfig(mappedPort, 15672,"task_queue3", "task_exchange")
 
     def"messages were consumed by all consumers"() {
         given:
-        consumer1 = new Consumer(mockEnvironment1, consumer1Queue::add)
-        consumer2 = new Consumer(mockEnvironment2, consumer2Queue::add)
+        consumer1 = new Consumer(environment1, consumer1Queue::add)
+        consumer2 = new Consumer(environment2, consumer2Queue::add)
         for(item in sentMessages) {
             producer.sendMessage(item)
         }
@@ -51,7 +47,25 @@ class PubSubTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer(mockEnvironment3)
+        def envMap1 = new Properties()
+        envMap1.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap1.put("QUEUE_NAME", "task_queue1")
+        envMap1.put("EXCHANGE_NAME", "task_exchange")
+        environment1 = new EnvRabbitMQConfig(envMap1 as Map<String, String>)
+
+        def envMap2 = new Properties()
+        envMap2.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap2.put("QUEUE_NAME", "task_queue2")
+        envMap2.put("EXCHANGE_NAME", "task_exchange")
+        environment2 = new EnvRabbitMQConfig(envMap2 as Map<String, String>)
+
+        def envMap3 = new Properties();
+        envMap3.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap3.put("QUEUE_NAME", "task_queue3")
+        envMap3.put("EXCHANGE_NAME", "task_exchange")
+        environment3 = new EnvRabbitMQConfig(envMap3 as Map<String, String>)
+
+        producer = new Producer(environment3)
     }
 
     def cleanup() {

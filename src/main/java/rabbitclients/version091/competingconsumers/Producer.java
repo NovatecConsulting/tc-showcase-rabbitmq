@@ -1,9 +1,9 @@
 package rabbitclients.version091.competingconsumers;
 
-import rabbitclients.AMQPProducer;
-import rabbitclients.RabbitMQConfig;
-import rabbitclients.Stoppable;
+import rabbitclients.*;
 import rabbitclients.version091.BaseClient;
+import rabbitclients.version100.swiftmq.competingconsumers.Consumer;
+
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -46,5 +46,15 @@ public class Producer extends BaseClient implements AMQPProducer, Stoppable {
     public void stop() throws IOException {
         log.info("Stopping client...");
         getConnection().close();
+    }
+
+    /**
+     * Start and test this producer as a console application.
+     * @param args
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(String[] args) throws IOException, TimeoutException {
+        new SenderApplication(new Producer(new EnvRabbitMQConfig())).start();
     }
 }

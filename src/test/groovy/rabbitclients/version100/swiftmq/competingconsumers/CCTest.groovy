@@ -3,9 +3,10 @@ package rabbitclients.version100.swiftmq.competingconsumers
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
-import rabbitclients.MockRabbitMQConfig
+import rabbitclients.EnvRabbitMQConfig
 import spock.lang.Shared
 import spock.lang.Specification
+
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -17,17 +18,15 @@ class CCTest extends Specification {
             .withPluginsEnabled("rabbitmq_amqp1_0")
             .withExposedPorts(5672)
 
-    def producer, consumer1, consumer2, queue
+    def producer, consumer1, consumer2, queue, environment
     def sentMessages = ["M1", "M2", "M3"]
     def common = new Common()
-    def mappedPort = rabbitMQContainer.getMappedPort(5672)
-    def mockEnvironment = new MockRabbitMQConfig(mappedPort, 15672,"task_queue1", "task_exchange")
 
     def "messages were consumed at least once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer(mockEnvironment, queue::add)
-        consumer2 = new Consumer(mockEnvironment, queue::add)
+        consumer1 = new Consumer(environment, queue::add)
+        consumer2 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()
@@ -42,8 +41,8 @@ class CCTest extends Specification {
     def "messages were consumed at most once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer(mockEnvironment, queue::add)
-        consumer2 = new Consumer(mockEnvironment, queue::add)
+        consumer1 = new Consumer(environment, queue::add)
+        consumer2 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()
@@ -55,7 +54,13 @@ class CCTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer(mockEnvironment)
+        def envMap = new Properties()
+        envMap.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap.put("QUEUE_NAME", "task_queue1")
+        envMap.put("EXCHANGE_NAME", "task_exchange")
+        environment = new EnvRabbitMQConfig(envMap as Map<String, String>)
+
+        producer = new Producer(environment)
         for (item in sentMessages) {
             producer.sendMessage(item)
         }

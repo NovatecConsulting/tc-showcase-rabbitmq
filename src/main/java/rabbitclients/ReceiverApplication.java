@@ -1,36 +1,33 @@
 package rabbitclients;
 
-import com.swiftmq.amqp.v100.client.AMQPException;
-import com.swiftmq.amqp.v100.client.AuthenticationException;
-import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
-
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ReceiverApplication {
     private static final Logger log = Logger.getLogger(ReceiverApplication.class.getName());
-    private static final int RABBIT_MQ_PORT = 5672;
-    private static final int RABBIT_MQ_REST_PORT = 15672;
-    private static final String HOST = "localhost";
-    private static AMQPConsumer receiver;
 
-    public static void main(String[] args)
-            throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
-        //receiver = new Consumer(HOST, RABBIT_MQ_PORT, RABBIT_MQ_REST_PORT, ReceiverApplication::doWork);
-        //start(receiver);
+    private final AMQPConsumer receiver;
+
+    public ReceiverApplication(Builder<java.util.function.Consumer<String>,AMQPConsumer> receiverBuilder) throws IOException, TimeoutException {
+        this.receiver = receiverBuilder.build(ReceiverApplication::doWork);
+        registerShutdownHook();
     }
 
-    private static void start(AMQPConsumer receiver) throws IOException {
-        /*Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                receiver.stop();
-                receiver.getCountDownLatch().await(10, TimeUnit.SECONDS);
-            } catch (InterruptedException | IOException e) {
-                log.severe("No grateful termination possible.");
-            }
-        }));
-        receiver.consumeMessages();*/
+    public void start() throws IOException {
+        receiver.consumeMessages();
+    }
+
+    public void stop() {
+        try {
+            receiver.stop();
+        } catch (InterruptedException | IOException e) {
+            log.severe("No grateful termination possible.");
+        }
+    }
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     /**
@@ -48,5 +45,9 @@ public class ReceiverApplication {
                 }
             }
         }
+    }
+
+    public interface Builder<S,D> {
+        D build(S source) throws IOException, TimeoutException;
     }
 }

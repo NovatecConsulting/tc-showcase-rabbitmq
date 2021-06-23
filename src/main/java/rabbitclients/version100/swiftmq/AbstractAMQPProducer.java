@@ -13,9 +13,7 @@ public abstract class AbstractAMQPProducer extends BaseClient implements AMQPPro
     private com.swiftmq.amqp.v100.client.Producer producerInstance;
     private static final Logger log = Logger.getLogger(AbstractAMQPProducer.class.getName());
 
-    public AbstractAMQPProducer(RabbitMQConfig rabbitMQConfig)
-            throws UnsupportedProtocolVersionException, SessionHandshakeException, ConnectionClosedException,
-            AuthenticationException, IOException {
+    public AbstractAMQPProducer(RabbitMQConfig rabbitMQConfig) throws IOException {
         super(rabbitMQConfig);
     }
 

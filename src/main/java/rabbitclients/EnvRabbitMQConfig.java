@@ -4,13 +4,13 @@ import java.util.Map;
 
 public class EnvRabbitMQConfig implements RabbitMQConfig {
 
-    private static final String HOST_VAR = "HOST";
-    private static final String PORT_VAR = "PORT";
-    private static final String MANAGEMENTPORT_VAR = "MANAGEMENT_PORT";
-    private static final String USER_VAR = "USER";
-    private static final String PASSWORD_VAR = "PASSWORD";
-    private static final String QUEUE_NAME_VAR = "QUEUE_NAME";
-    private static final String EXCHANGE_NAME_VAR = "EXCHANGE_NAME";
+    public static final String HOST_VAR = "HOST";
+    public static final String PORT_VAR = "PORT";
+    public static final String MANAGEMENTPORT_VAR = "MANAGEMENT_PORT";
+    public static final String USER_VAR = "USER";
+    public static final String PASSWORD_VAR = "PASSWORD";
+    public static final String QUEUE_NAME_VAR = "QUEUE_NAME";
+    public static final String EXCHANGE_NAME_VAR = "EXCHANGE_NAME";
 
     private final Map<String, String> env;
 

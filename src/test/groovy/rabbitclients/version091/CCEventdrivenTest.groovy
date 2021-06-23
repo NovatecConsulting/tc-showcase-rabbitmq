@@ -3,13 +3,17 @@ package rabbitclients.version091
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
-import rabbitclients.MockRabbitMQConfig
+import rabbitclients.EnvRabbitMQConfig
 import rabbitclients.version091.competingconsumers.Producer
 import rabbitclients.version091.competingconsumers.eventdriven.Consumer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
+
+import static rabbitclients.EnvRabbitMQConfig.EXCHANGE_NAME_VAR
+import static rabbitclients.EnvRabbitMQConfig.PORT_VAR
+import static rabbitclients.EnvRabbitMQConfig.QUEUE_NAME_VAR
 
 @Testcontainers
 class CCEventdrivenTest extends Specification {
@@ -18,19 +22,17 @@ class CCEventdrivenTest extends Specification {
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withExposedPorts(5672)
 
-    def producer, consumer1, consumer2, queue
+    def producer, consumer1, consumer2, queue, environment
     def sentMessages = ["M1", "M2", "M3"]
     def consumer1Queue = new LinkedBlockingQueue()
     def consumer2Queue = new LinkedBlockingQueue()
     def common = new Common()
-    def mappedPort = rabbitMQContainer.getMappedPort(5672)
-    def mockEnvironment = new MockRabbitMQConfig(mappedPort, 15672,"task_queue1", "task_exchange")
 
     def"messages were consumed at least once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer(mockEnvironment, queue::add)
-        consumer2 = new Consumer(mockEnvironment, queue::add)
+        consumer1 = new Consumer(environment, queue::add)
+        consumer2 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()
@@ -45,8 +47,8 @@ class CCEventdrivenTest extends Specification {
     def"messages were consumed at most once"() {
         given:
         queue = new LinkedBlockingQueue()
-        consumer1 = new Consumer(mockEnvironment, queue::add)
-        consumer2 = new Consumer(mockEnvironment, queue::add)
+        consumer1 = new Consumer(environment, queue::add)
+        consumer2 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()
@@ -59,8 +61,8 @@ class CCEventdrivenTest extends Specification {
 
     def"messages were distributed to all consumers"() {
         given:
-        consumer1 = new Consumer(mockEnvironment, consumer1Queue::add)
-        consumer2 = new Consumer(mockEnvironment, consumer2Queue::add)
+        consumer1 = new Consumer(environment, consumer1Queue::add)
+        consumer2 = new Consumer(environment, consumer2Queue::add)
 
         when:
         consumer1.consumeMessages()
@@ -75,7 +77,12 @@ class CCEventdrivenTest extends Specification {
     }
 
     def setup() {
-        producer = new Producer(mockEnvironment)
+        environment = new EnvRabbitMQConfig(Map.of(
+                PORT_VAR, String.valueOf(rabbitMQContainer.getMappedPort(5672)),
+                QUEUE_NAME_VAR, "task_queue1",
+                EXCHANGE_NAME_VAR, "task_exchange"))
+
+        producer = new Producer(environment)
         for(item in sentMessages) {
             producer.sendMessage(item)
         }

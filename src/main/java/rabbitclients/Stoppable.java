@@ -8,5 +8,5 @@ public interface Stoppable {
      * Gracefully stops the client and closes the connection to the broker.
      * @throws IOException
      */
-    void stop() throws IOException, InterruptedException, JMSException;
+    void stop() throws IOException, InterruptedException;
 }

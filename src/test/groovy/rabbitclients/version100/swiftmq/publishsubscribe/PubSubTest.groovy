@@ -3,7 +3,7 @@ package rabbitclients.version100.swiftmq.publishsubscribe
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
-import rabbitclients.MockRabbitMQConfig
+import rabbitclients.EnvRabbitMQConfig
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -18,23 +18,18 @@ class PubSubTest extends Specification {
             .withPluginsEnabled("rabbitmq_amqp1_0", "rabbitmq_management")
             .withExposedPorts(5672, 15672)
 
-    def publisher, subscriber1, subscriber2, queue
+    def publisher, subscriber1, subscriber2, queue, environment1, environment2, environment3
     def sentMessages = ["M1", "M2", "M3"]
     def subscriber1Queue = new LinkedBlockingQueue()
     def subscriber2Queue = new LinkedBlockingQueue()
     def common = new Common()
-    def mappedPort = rabbitMQContainer.getMappedPort(5672)
-    def mappedManagementPort = rabbitMQContainer.getMappedPort(15672)
-    def mockEnvironment1 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue1", "task_exchange")
-    def mockEnvironment2 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue2", "task_exchange")
-    def mockEnvironment3 = new MockRabbitMQConfig(mappedPort, mappedManagementPort,"task_queue3", "task_exchange")
 
     def "messages were consumed at least once"() {
         given:
         queue = new LinkedBlockingQueue()
 
-        subscriber1 = new Consumer(mockEnvironment1, subscriber1Queue::add)
-        subscriber2 = new Consumer(mockEnvironment2, subscriber2Queue::add)
+        subscriber1 = new Consumer(environment1, subscriber1Queue::add)
+        subscriber2 = new Consumer(environment2, subscriber2Queue::add)
         for (item in sentMessages) {
             publisher.sendMessage(item)
         }
@@ -51,8 +46,8 @@ class PubSubTest extends Specification {
     def "messages were consumed at most once"() {
         given:
         queue = new LinkedBlockingQueue()
-        subscriber1 = new Consumer(mockEnvironment1, subscriber1Queue::add)
-        subscriber2 = new Consumer(mockEnvironment2, subscriber2Queue::add)
+        subscriber1 = new Consumer(environment1, subscriber1Queue::add)
+        subscriber2 = new Consumer(environment2, subscriber2Queue::add)
         for (item in sentMessages) {
             publisher.sendMessage(item)
         }
@@ -85,7 +80,28 @@ class PubSubTest extends Specification {
     }
 
     def setup() {
-        publisher = new Producer(mockEnvironment3)
+        def envMap1 = new Properties()
+        envMap1.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap1.put("MANAGEMENT_PORT", String.valueOf(rabbitMQContainer.getMappedPort(15672)))
+        envMap1.put("QUEUE_NAME", "task_queue1")
+        envMap1.put("EXCHANGE_NAME", "task_exchange")
+        environment1 = new EnvRabbitMQConfig(envMap1 as Map<String, String>)
+
+        def envMap2 = new Properties()
+        envMap2.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap2.put("MANAGEMENT_PORT", String.valueOf(rabbitMQContainer.getMappedPort(15672)))
+        envMap2.put("QUEUE_NAME", "task_queue2")
+        envMap2.put("EXCHANGE_NAME", "task_exchange")
+        environment2 = new EnvRabbitMQConfig(envMap2 as Map<String, String>)
+
+        def envMap3 = new Properties();
+        envMap3.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))
+        envMap3.put("MANAGEMENT_PORT", String.valueOf(rabbitMQContainer.getMappedPort(15672)))
+        envMap3.put("QUEUE_NAME", "task_queue3")
+        envMap3.put("EXCHANGE_NAME", "task_exchange")
+        environment3 = new EnvRabbitMQConfig(envMap3 as Map<String, String>)
+
+        publisher = new Producer(environment3)
     }
 
     def cleanup() {

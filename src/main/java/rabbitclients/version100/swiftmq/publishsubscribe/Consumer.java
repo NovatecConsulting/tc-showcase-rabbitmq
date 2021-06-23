@@ -7,24 +7,31 @@ import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
+import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
+import rabbitclients.ReceiverApplication;
 import rabbitclients.version100.swiftmq.AbstractAMQPConsumer;
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 public class Consumer extends AbstractAMQPConsumer {
 
     public Consumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
-            throws UnsupportedProtocolVersionException, AMQPException, AuthenticationException, IOException {
+            throws IOException {
         super(rabbitMQConfig, toAMQPConsumer(Consumer::extractMessage, messageHandler.andThen(System.out::println)));
         prepareMessageExchange();
 
-        //according to AMQP 1.0 protocol: "attach" handshake:
-        setConsumerInstance(
-                getSession().createConsumer(
-                        getQueueName(), 100, QoS.AT_MOST_ONCE, true, null
-                )
-        );
+        try{
+            //according to AMQP 1.0 protocol: "attach" handshake:
+            setConsumerInstance(
+                    getSession().createConsumer(
+                            getQueueName(), 100, QoS.AT_MOST_ONCE, true, null
+                    )
+            );
+        }catch(AMQPException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
     private static  java.util.function.Consumer<AMQPMessage> toAMQPConsumer(Function<AMQPMessage, String> mapper, java.util.function.Consumer<String> messageHandler) {
@@ -55,5 +62,15 @@ public class Consumer extends AbstractAMQPConsumer {
         setup.createExchange(getExchangeName());
         setup.createQueue(getQueueName());
         setup.createBinding(getQueueName(), getExchangeName());
+    }
+
+    /**
+     * Start and test this consumer as a console application.
+     * @param args
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(String[] args) throws IOException, TimeoutException {
+        new ReceiverApplication(worker -> new rabbitclients.version100.swiftmq.competingconsumers.Consumer(new EnvRabbitMQConfig(), worker)).start();
     }
 }

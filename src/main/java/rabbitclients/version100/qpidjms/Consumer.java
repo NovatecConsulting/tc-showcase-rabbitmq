@@ -2,8 +2,13 @@ package rabbitclients.version100.qpidjms;
 
 import org.apache.qpid.jms.JmsQueue;
 import rabbitclients.AMQPConsumer;
+import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
+import rabbitclients.ReceiverApplication;
+
 import javax.jms.*;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -14,15 +19,19 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     private Thread getMessage;
 
     public Consumer(RabbitMQConfig rabbitMQConfig, java.util.function.Consumer<String> messageHandler)
-            throws JMSException {
+            throws IOException {
         super(rabbitMQConfig, messageHandler);
         prepareMessageExchange();
     }
 
     @Override
-    public void prepareMessageExchange() throws JMSException {
+    public void prepareMessageExchange() throws IOException {
         Destination queue = new JmsQueue(getQueueName());
-        messageConsumer = getSession().createConsumer(queue);
+        try {
+            messageConsumer = getSession().createConsumer(queue);
+        } catch (JMSException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -61,5 +70,15 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     public void stop() throws InterruptedException {
         running.set(false);
         getMessage.join();
+    }
+
+    /**
+     * Start and test this consumer as a console application.
+     * @param args
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(String[] args) throws IOException, TimeoutException {
+        new ReceiverApplication(worker -> new Consumer(new EnvRabbitMQConfig(), worker)).start();
     }
 }

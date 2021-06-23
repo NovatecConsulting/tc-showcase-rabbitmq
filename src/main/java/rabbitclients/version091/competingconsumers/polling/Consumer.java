@@ -3,7 +3,9 @@ package rabbitclients.version091.competingconsumers.polling;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.GetResponse;
 import rabbitclients.AMQPConsumer;
+import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
+import rabbitclients.ReceiverApplication;
 import rabbitclients.version091.BaseClient;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -84,5 +86,15 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
         log.info("Stopping client...");
         running.set(false);
         getMessage.join();
+    }
+
+    /**
+     * Start and test this consumer as a console application.
+     * @param args
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(String[] args) throws IOException, TimeoutException {
+        new ReceiverApplication(worker -> new Consumer(new EnvRabbitMQConfig(), worker)).start();
     }
 }
