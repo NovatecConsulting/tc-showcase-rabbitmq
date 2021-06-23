@@ -39,13 +39,14 @@ Pull requests will automatically trigger a new test run.
 
 == RabbitMQ Basics
 
-=== High-Level Model (AMQP 0.9.1)
+=== High-Level Model (AMQP 0.9.1): Queues, Exchanges, Channels
 
 RabbitMQ uses the following model:
 
 Publishers send their messages to exchanges which can be compared to postoffices or mailboxes. These messages are then
 forwarded to one or more binded queues. Consumers can subscribe to queues or explicitly pull from them.
 
+[discrete]
 === Exchanges
 
 Exchanges route messages to one or more defined queues. There are four differnt types of exchanges:
@@ -58,6 +59,7 @@ Exchanges route messages to one or more defined queues. There are four differnt 
 By default if no exchange is explicitly created, the broker will use the same name for the routing-key as for the queue
 that the publisher wants to send the messages to.
 
+[discrete]
 === Queues
 
 RabbitMQ uses queues as a sequential data structure with the two primary operations of enqueueing and dequeueing.
@@ -70,6 +72,7 @@ an empty string where a queue name is expected.
 
 A queue can be declared with the properties name, durability, exclusivity, auto-deletion and additional arguments.
 
+[discrete]
 === Connections and Channels
 
 On the technical side, clients have to connect and authenticate to a RabbitMQ node before they are able to publish or consume
@@ -249,6 +252,7 @@ Additional fields that are provided by AMQP 1.0:
 A short comparison of the AMQP 0.9.1 and AMQP 1.0 fields is also provided
 in the https://github.com/rabbitmq/rabbitmq-amqp1.0#message-properties-annotations-headers-etc[RabbitMQ plugin documentation].
 
+[discrete]
 === Routing and Addresses
 
 If no specific exchange or topic name is provided, the messages are sent to the default exchange with the queue name
@@ -266,6 +270,7 @@ com.swiftmq.amqp.v100.client.Producer producerInstance = session.createProducer(
 In the example above, the producer sends all messages to the _amq.topic exchange_, from where
 they are then further distributed to all queues with the binding _my_routing_key_.
 
+[discrete]
 === Frame Sizes and Session Windows
 
 For each connection, a maximum frame size has to be set to make sure that the sender/receiver has enough capacity
@@ -277,6 +282,7 @@ AMQPMessage, the frames are put together again internally. The protocol implemen
 the frame sequence and lost frames according to the quality of service. Therefore, this does not need to be handled
 by the Java Client.
 
+[discrete]
 === Settlement and Quality of Service
 
 There are three different qualities of service available for clients:
