@@ -13,6 +13,8 @@ import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * Test of compatibility/interoperability of RabbitMQ and Qpid JMS clients.
+ * Messages can only be sent by RabbitMQ producers and can then be read by Qpid consumers.
+ * More details are provided in the README file.
  */
 @Testcontainers
 class RabbitQpidInteroperability extends Specification {
