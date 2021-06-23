@@ -51,7 +51,7 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
                 TextMessage message = (TextMessage) messageConsumer.receive(1000);
                 if(message != null) {
                     getMessageHandler().accept(message.getText());
-                    System.out.println("Received message");
+                    System.out.println("Received message" + message.getText());
                 }
             }
         } catch (JMSException e) {

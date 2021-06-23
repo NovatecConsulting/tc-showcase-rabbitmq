@@ -20,7 +20,7 @@ public class Producer extends AbstractAMQPProducer {
             //according to AMQP 1.0 protocol: "attach" handshake:
             setProducerInstance(
                     getSession().createProducer(
-                            getExchangeName(), QoS.AT_MOST_ONCE
+                            getQueueName(), QoS.AT_MOST_ONCE
                     )
             );
         }catch(AMQPException e) {

@@ -23,7 +23,7 @@ public class Consumer extends AbstractAMQPConsumer {
             //according to AMQP 1.0 protocol: "attach" handshake:
             setConsumerInstance(
                     getSession().createConsumer(
-                            getExchangeName(), 100, QoS.AT_MOST_ONCE, true, null
+                            getQueueName(), 100, QoS.AT_MOST_ONCE, true, null
                     )
             );
         }catch(AMQPException e) {

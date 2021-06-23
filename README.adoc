@@ -346,9 +346,38 @@ com.swiftmq.amqp.v100.client.ConnectionClosedException: java.io.IOException: End
 To resolve this, enable the plugin like described above at _Plugin Installation_.
 
 
-== AMQP Version Interoperability
+== AMQP Version and Library Interoperability
 
-=== AMQP 1.0 to AMQP 0.9.1
+|===
+|Producer Library |Consumer Library|Interoperability
+
+|SwiftMQ
+|RabbitMQ
+|not provided -> wrong decoding
+
+|RabbitMQ
+|SwiftMQ
+|provided with constraints -> reading from data field
+
+|Qpid JMS
+|SwiftMQ
+|provided
+
+|SwiftMQ
+|Qpid JMS
+|provided
+
+|Qpid JMS
+|RabbitMQ
+|not provided -> wrong decoding
+
+|RabbitMQ
+|Qpid JMS
+|provided
+|===
+
+[discrete]
+=== AMQP 1.0 (SwiftMQ) to AMQP 0.9.1 (RabbitMQ)
 
 If messages are sent by an AMQP 1.0 client and consumed using an AMQP 0.9.1 client, the consumer will get the message
 with extra bytes in the beginning.
@@ -366,7 +395,8 @@ According to this definition, it would be possible to send the messages in byte-
 AMQP 0.9.1 clients do not need to decode them additionally. Unfortunately, the SwiftMQ client does only offer to
 send messages as AMQP-values or -sequences and not as plain bytes.
 
-=== AMQP 0.9.1 to AMQP 1.0
+[discrete]
+=== AMQP 0.9.1 (RabbitMQ) to AMQP 1.0 (SwiftMQ)
 
 When messages are sent in AMQP 0.9.1 format, the plugin extracts the payload bytes and transforms them into an
 AMQP 1.0 message. This means that the payload is transferred in the data section of the AMQP 1.0 message.
@@ -374,4 +404,35 @@ The receiving client then needs to transform the bytes into the desired data typ
 
 As mentioned in the paragraph above, the SwiftMQ client does not offer a method to send data in the data section
 of AMQP 1.0 messages. In contradiction to this, it is possible to read data from the data section and therefore,
-to receive messages that were sent using AMQP 0.9.1.
+to receive messages that were sent using AMQP 0.9.1. In case of the SwiftMQ library,
+the identification of a message being in data-format or AMQP-value-format needs to be handled by the implementation.
+An example can be found at the ``InteroperabilityConsumer`` class.
+
+[discrete]
+=== AMQP 1.0 (Qpid JMS) to AMQP 0.9.1 (RabbitMQ)
+For Qpid JMS producers applies the same as for SwiftMQ producers when the messages are consumed by a RabbitMQ consumer.
+The messages will not be decoded corretly:
+
+*Example:*
+
+* Sent message: M1
+* Received message: Sw�M1
+
+The example shows that the bytes that are appended in front of the message are similar to those appended by SwiftMQ
+clients, but are not exactly the same. This suggests that the appended bytes are client-dependent and therefore
+cannot be handled by the RabbitMQ plugin. +
+This issue was also discussed in the RabbitMQ https://groups.google.com/g/rabbitmq-users/c/QBsc_wCuTBs/m/xh84gj1hAwAJ[mailing list].
+
+[discrete]
+=== AMQP 0.9.1 (RabbitMQ) to AMQP 1.0 (Qpid JMS)
+Sending messages using a RabbitMQ client and receiving those messages using a Qpid JMS client works without
+constraints. In contradiction to the SwiftMQ client, it is not necessary to read the payload explicitly from
+the data field. The distinction between AMQP 0.9.1 messages (at the data field) and AMQP 1.0 messages
+(at the AMQP value field) is handled by the Qpid JMS library.
+
+[discrete]
+=== AMQP 1.0 (SwiftMQ) to AMQP 1.0 (Qpid JMS) and vice versa
+The testing class ``QpidSwiftInteroperability`` tests the interoperability of SwiftMQ consumers and producers
+and Qpid JMS consumers and producers.
+The tests proved that messages can be sent and received independently from the
+used client library. All messages are encoded and decoded corretly.

@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue
  * More details on this are provided in the README-file of this project.
  */
 @Testcontainers
-class AMQPCompatibility extends Specification {
+class RabbitSwiftInteroperability extends Specification {
 
     @Shared
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
