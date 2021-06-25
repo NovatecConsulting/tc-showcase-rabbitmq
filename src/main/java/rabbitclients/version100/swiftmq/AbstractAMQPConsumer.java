@@ -86,4 +86,6 @@ public abstract class AbstractAMQPConsumer extends BaseClient implements AMQPCon
     protected void setConsumerInstance(Consumer consumer) {
         this.consumerInstance = consumer;
     }
+
+    protected abstract void prepareMessageExchange() throws IOException;
 }

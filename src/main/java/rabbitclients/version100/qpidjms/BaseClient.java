@@ -61,4 +61,6 @@ public abstract class BaseClient {
     public java.util.function.Consumer<String> getMessageHandler() {
         return messageHandler;
     }
+
+    protected abstract void prepareMessageExchange() throws IOException;
 }

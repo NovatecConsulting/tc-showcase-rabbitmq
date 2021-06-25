@@ -46,6 +46,24 @@ class RabbitQpidInteroperability extends Specification {
         receivedMessages.containsAll(sentMessages)
     }
 
+    def "consumed messages equal sent messages for Qpid producer and Rabbit consumer"() {
+        given:
+        producer = new rabbitclients.version100.qpidjms.Producer(environment)
+        for (item in sentMessages) {
+            producer.sendUnencodedMessage(item)
+        }
+        queue = new LinkedBlockingQueue()
+        consumer1 = new rabbitclients.version091.competingconsumers.eventdriven.Consumer(environment, queue::add)
+
+        when:
+        consumer1.consumeMessages()
+
+        then:
+        def receivedMessages = common.getReceivedMessages(3, Duration.ofSeconds(2), queue)
+        sentMessages.size() >= receivedMessages.size()
+        receivedMessages.containsAll(sentMessages)
+    }
+
     def setup() {
         def envMap = new Properties()
         envMap.put("PORT", String.valueOf(rabbitMQContainer.getMappedPort(5672)))

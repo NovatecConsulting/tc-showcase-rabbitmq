@@ -2,6 +2,7 @@ package rabbitclients.version100.swiftmq;
 
 import com.swiftmq.amqp.v100.client.*;
 import com.swiftmq.amqp.v100.generated.messaging.message_format.AmqpValue;
+import com.swiftmq.amqp.v100.generated.messaging.message_format.Data;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import rabbitclients.AMQPProducer;
@@ -34,6 +35,21 @@ public abstract class AbstractAMQPProducer extends BaseClient implements AMQPPro
         }
     }
 
+    /**
+     * Sends a String message as plain binary data and not AMQP encoded.
+     * @param message
+     */
+    public void sendUnencodedMessage(String message) {
+        try {
+            AMQPMessage msg = new AMQPMessage(); //default-values are set for header-fields and properties
+            System.out.println("Sending: " + message);
+            msg.addData(new Data(message.getBytes()));
+            producerInstance.send(msg);
+        } catch (AMQPException e) {
+            log.warning("Message could not get delivered.");
+        }
+    }
+
     @Override
     public void stop() {
         log.info("Stopping client...");
@@ -43,4 +59,6 @@ public abstract class AbstractAMQPProducer extends BaseClient implements AMQPPro
     protected void setProducerInstance(Producer producer) {
         this.producerInstance = producer;
     }
+
+    protected abstract void prepareMessageExchange() throws IOException;
 }

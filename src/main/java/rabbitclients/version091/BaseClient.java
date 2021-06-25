@@ -21,8 +21,7 @@ public abstract class BaseClient {
     }
 
     public BaseClient(RabbitMQConfig rabbitMQConfig) throws IOException, TimeoutException {
-        this.rabbitMQConfig = rabbitMQConfig;
-        initializeClient();
+        this(rabbitMQConfig, null);
     }
 
     private void initializeClient() throws IOException, TimeoutException {

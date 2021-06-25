@@ -8,7 +8,6 @@ import rabbitclients.SenderApplication;
 
 import javax.jms.*;
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 public class Producer extends BaseClient implements AMQPProducer {
     private MessageProducer messageProducer;
@@ -20,7 +19,7 @@ public class Producer extends BaseClient implements AMQPProducer {
 
     @Override
     public void sendMessage(String message) throws IOException {
-        TextMessage textMessage = null;
+        TextMessage textMessage;
         try {
             textMessage = getSession().createTextMessage(message);
             messageProducer.send(textMessage, DeliveryMode.NON_PERSISTENT, Message.DEFAULT_PRIORITY, Message.DEFAULT_TIME_TO_LIVE);
@@ -28,6 +27,20 @@ public class Producer extends BaseClient implements AMQPProducer {
             throw new IOException(e.getMessage(), e);
         }
         System.out.println("Sending: " + message);
+    }
+
+    /**
+     * Sends a String message as plain binary data and not AMQP encoded.
+     * @param message
+     */
+    public void sendUnencodedMessage(String message) throws IOException {
+        try {
+            BytesMessage bytesMessage = getSession().createBytesMessage();
+            bytesMessage.writeBytes(message.getBytes());
+            messageProducer.send(bytesMessage);
+        }catch(JMSException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
     @Override

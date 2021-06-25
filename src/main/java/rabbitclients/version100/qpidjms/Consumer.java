@@ -25,16 +25,6 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     }
 
     @Override
-    public void prepareMessageExchange() throws IOException {
-        Destination queue = new JmsQueue(getQueueName());
-        try {
-            messageConsumer = getSession().createConsumer(queue);
-        } catch (JMSException e) {
-            throw new IOException(e.getMessage(), e);
-        }
-    }
-
-    @Override
     public void consumeMessages() {
         System.out.println(" ... Waiting for messages. To exit press CTRL+C");
         getMessage = new Thread(this); //get messages in polling behaviour in new thread
@@ -63,6 +53,16 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
             } catch (JMSException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void prepareMessageExchange() throws IOException {
+        Destination queue = new JmsQueue(getQueueName());
+        try {
+            messageConsumer = getSession().createConsumer(queue);
+        } catch (JMSException e) {
+            throw new IOException(e.getMessage(), e);
         }
     }
 

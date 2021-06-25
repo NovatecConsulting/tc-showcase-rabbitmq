@@ -351,28 +351,28 @@ To resolve this, enable the plugin like described above at _Plugin Installation_
 |===
 |Producer Library |Consumer Library|Interoperability
 
-|SwiftMQ
-|RabbitMQ
-|not provided -> wrong decoding
+|SwiftMQ 1.0
+|RabbitMQ 0.9.1
+|provided with constraints -> sending as plain bytes
 
-|RabbitMQ
-|SwiftMQ
+|RabbitMQ 0.9.1
+|SwiftMQ 1.0
 |provided with constraints -> reading from data field
 
-|Qpid JMS
-|SwiftMQ
+|Qpid JMS 1.0
+|SwiftMQ 1.0
 |provided
 
-|SwiftMQ
-|Qpid JMS
+|SwiftMQ 1.0
+|Qpid JMS 1.0
 |provided
 
-|Qpid JMS
-|RabbitMQ
-|not provided -> wrong decoding
+|Qpid JMS 1.0
+|RabbitMQ 0.9.1
+|provided with constraints -> sending as plain bytes
 
-|RabbitMQ
-|Qpid JMS
+|RabbitMQ 0.9.1
+|Qpid JMS 1.0
 |provided
 |===
 
@@ -411,7 +411,7 @@ An example can be found at the ``InteroperabilityConsumer`` class.
 [discrete]
 === AMQP 1.0 (Qpid JMS) to AMQP 0.9.1 (RabbitMQ)
 For Qpid JMS producers applies the same as for SwiftMQ producers when the messages are consumed by a RabbitMQ consumer.
-The messages will not be decoded corretly:
+The messages will not be decoded correctly:
 
 *Example:*
 
@@ -422,6 +422,11 @@ The example shows that the bytes that are appended in front of the message are s
 clients, but are not exactly the same. This suggests that the appended bytes are client-dependent and therefore
 cannot be handled by the RabbitMQ plugin. +
 This issue was also discussed in the RabbitMQ https://groups.google.com/g/rabbitmq-users/c/QBsc_wCuTBs/m/xh84gj1hAwAJ[mailing list].
+
+It is possible to work around this issue when sending the messages as (unencoded)
+plain bytes by using the method `Producer.sendUnencodedMessage(String message)`.
+In terms of interoperability, the Qpid JMS client seems to be the better
+choice compared to the SwiftMQ client.
 
 [discrete]
 === AMQP 0.9.1 (RabbitMQ) to AMQP 1.0 (Qpid JMS)
