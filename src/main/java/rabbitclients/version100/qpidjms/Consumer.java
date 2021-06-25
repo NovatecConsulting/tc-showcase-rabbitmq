@@ -1,6 +1,8 @@
 package rabbitclients.version100.qpidjms;
 
 import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.message.JmsBytesMessage;
+import org.apache.qpid.jms.message.JmsMessage;
 import rabbitclients.AMQPConsumer;
 import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
@@ -8,6 +10,8 @@ import rabbitclients.ReceiverApplication;
 
 import javax.jms.*;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -38,10 +42,22 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
     public void run() {
         try {
             while (running.get()) {
-                TextMessage message = (TextMessage) messageConsumer.receive(1000);
+                Message message = messageConsumer.receive(1000);
                 if(message != null) {
-                    getMessageHandler().accept(message.getText());
-                    System.out.println("Received message" + message.getText());
+                    if(message instanceof TextMessage) {
+                        getMessageHandler().accept(((TextMessage)message).getText());
+                        System.out.println("Received message " + ((TextMessage)message).getText());
+                    } else if(message instanceof JmsBytesMessage) {
+                        JmsBytesMessage bytesMessage = (JmsBytesMessage) message;
+                        int length = Long.valueOf(bytesMessage.getBodyLength()).intValue();
+                        byte[] b = new byte[length];
+                        ((JmsBytesMessage) message).readBytes(b, length);
+                        String text = new String(b, StandardCharsets.UTF_8);
+                        getMessageHandler().accept(text);
+                        System.out.println("Received message " + text);
+                    } else {
+                        log.severe("Type of received message is unknown.");
+                    }
                 }
             }
         } catch (JMSException e) {

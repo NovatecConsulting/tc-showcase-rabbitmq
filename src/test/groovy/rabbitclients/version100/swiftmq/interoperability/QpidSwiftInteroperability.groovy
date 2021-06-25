@@ -4,6 +4,8 @@ import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
 import rabbitclients.EnvRabbitMQConfig
+import rabbitclients.version100.qpidjms.Consumer
+import rabbitclients.version100.swiftmq.competingconsumers.Producer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
@@ -52,6 +54,44 @@ class QpidSwiftInteroperability extends Specification {
 
         queue = new LinkedBlockingQueue()
         consumer1 = new rabbitclients.version100.swiftmq.competingconsumers.Consumer(environment, queue::add)
+
+        when:
+        consumer1.consumeMessages()
+
+        then:
+        def receivedMessages = common.getReceivedMessages(3, Duration.ofSeconds(2), queue)
+        sentMessages.size() >= receivedMessages.size()
+        receivedMessages.containsAll(sentMessages)
+    }
+
+    def "consumed messages equal sent messages for Qpid Producer and SwiftMQ Consumer (messages as plain bytes)"() {
+        given:
+        producer = new rabbitclients.version100.qpidjms.Producer(environment)
+        for (item in sentMessages) {
+            producer.sendUnencodedMessage(item)
+        }
+
+        queue = new LinkedBlockingQueue()
+        consumer1 = new InteroperabilityConsumer(environment, queue::add)
+
+        when:
+        consumer1.consumeMessages()
+
+        then:
+        def receivedMessages = common.getReceivedMessages(3, Duration.ofSeconds(2), queue)
+        sentMessages.size() >= receivedMessages.size()
+        receivedMessages.containsAll(sentMessages)
+    }
+
+    def "consumed messages equal sent messages for SwiftMQ Producer and Qpid Consumer (messages as plain bytes)"() {
+        given:
+        producer = new Producer(environment)
+        for (item in sentMessages) {
+            producer.sendUnencodedMessage(item)
+        }
+
+        queue = new LinkedBlockingQueue()
+        consumer1 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()
