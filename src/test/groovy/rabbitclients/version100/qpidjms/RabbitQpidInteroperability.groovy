@@ -1,16 +1,15 @@
-package rabbitclients.version100.swiftmq.interoperability
+package rabbitclients.version100.qpidjms
 
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
 import rabbitclients.Common
 import rabbitclients.EnvRabbitMQConfig
 import rabbitclients.version091.competingconsumers.Producer
-import rabbitclients.version100.qpidjms.Consumer
 import spock.lang.Shared
 import spock.lang.Specification
+
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
-
 /**
  * Test of compatibility/interoperability of RabbitMQ and Qpid JMS clients.
  * Messages can only be sent by RabbitMQ producers and can then be read by Qpid consumers.

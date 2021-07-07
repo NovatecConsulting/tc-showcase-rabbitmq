@@ -7,7 +7,7 @@ public class EnvRabbitMQConfig implements RabbitMQConfig {
     public static final String HOST_VAR = "HOST";
     public static final String PORT_VAR = "PORT";
     public static final String MANAGEMENTPORT_VAR = "MANAGEMENT_PORT";
-    public static final String USER_VAR = "USER";
+    public static final String USER_VAR = "USER_NAME";
     public static final String PASSWORD_VAR = "PASSWORD";
     public static final String QUEUE_NAME_VAR = "QUEUE_NAME";
     public static final String EXCHANGE_NAME_VAR = "EXCHANGE_NAME";

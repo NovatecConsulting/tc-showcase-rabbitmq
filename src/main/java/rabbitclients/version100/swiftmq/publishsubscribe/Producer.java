@@ -6,6 +6,7 @@ import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
 import rabbitclients.SenderApplication;
 import rabbitclients.version100.swiftmq.AbstractAMQPProducer;
+import rabbitclients.version100.Setup;
 
 import java.io.IOException;
 

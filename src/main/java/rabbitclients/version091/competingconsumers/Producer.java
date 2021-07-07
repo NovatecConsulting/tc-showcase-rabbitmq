@@ -2,8 +2,6 @@ package rabbitclients.version091.competingconsumers;
 
 import rabbitclients.*;
 import rabbitclients.version091.BaseClient;
-import rabbitclients.version100.swiftmq.competingconsumers.Consumer;
-
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;

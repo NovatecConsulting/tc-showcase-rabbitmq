@@ -439,5 +439,12 @@ the data field. The distinction between AMQP 0.9.1 messages (at the data field) 
 === AMQP 1.0 (SwiftMQ) to AMQP 1.0 (Qpid JMS) and vice versa
 The testing class ``QpidSwiftInteroperability`` tests the interoperability of SwiftMQ consumers and producers
 and Qpid JMS consumers and producers.
-The tests proved that messages can be sent and received independently from the
-used client library. All messages are encoded and decoded corretly.
+The tests proved that messages can be sent and received independently of the
+used client library. All messages are encoded and decoded correctly.
+
+[discrete]
+=== Shovel Plugin for AMQP 0.9.1 and AMQP 1.0 Interoperability
+Besides the AMQP 1.0 plugin, RabbitMQ also offers the Shovel plugin to transfer and redeliver messages between clusters
+and nodes. The Shovel plugin also supports AMQP 0.9.1 and AMQP 1.0, but is using the same Erlang clients as the
+AMQP 1.0 plugin. Therefore, shovels provide the same interoperability as the AMQP 1.0 plugin, as also indicated in the
+comparison table above.
