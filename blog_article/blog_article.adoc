@@ -2,62 +2,59 @@
 
 System architectures usually evolve over time: services and components are added, replaced or modified.
 For event-driven architectures, this means that events need to be dynamically routed and received by different
-applications. As part of this overlying scenario, we want to have a look on interoperability between the protocols
-AMQP 0.9.1 and AMQP 1.0. Because even if the names of the protocols are very similar, we will see that a few things
-must be taken into account in application development in order to be able to achieve interoperability.
+applications. As part of this overlying scenario, we want to have a look at interoperability between the protocols
+AMQP 0.9.1 and AMQP 1.0. Because even if the names of the protocols are very similar, we will see that a few
+things must be taken into account in application development to be able to achieve interoperability.
 
 == AMQP 0.9.1 and AMQP 1.0 - The same Protocol?
-At first, one could assume that the protocols AMQP 0.9.1 and AMQP 1.0 are very similar and that
-the differences between them cannot be that severe. Unfortunately, the naming could lead to confusion
-for those who are not familiar with the concepts of both protocols. In fact, AMQP 0.9.1 and AMQP 1.0 should be treated
-like completely different specifications.
-The Advanced Message Queuing Protocol (AMQP) was released for communication
-between clients and messaging brokers. It is widely-used and supported by a number of broker
-implementations: RabbitMQ, ActiveMQ and SwiftMQ to only name a few examples.
-The architecture that is assumed by AMQP 0.9.1 relies mainly on queues and exchanges. +
-In contrast to that, AMQP 1.0 was developed to be more universally applicable and therefore,
-does not know concepts like queues or exchanges. By assuming less, the protocol should be more flexible to use. +
-As also stated on the AMQP website, the protocol was introduced "to become the standard protocol for interoperability between all messaging middleware".
-Using the RabbitMQ broker as an example, we want to take a closer look at the extent to which AMQP is supported and how different versions interoperate with each other.
-Therefore, in the following we will compare the use of three Java client libraries: RabbitMQ, SwiftMQ and Qpid JMS.
-The RabbitMQ broker requires an activated AMQP 1.0 plugin for this.
-The competing consumer and publish-subscribe pattern were implemented using these clients within this
-https://github.com/NovatecConsulting/showcase-rabbitmq/tree/main[repository]. Feel free to have a
-look at the implementations and how they differ from each other!
+
+At first, one could assume that the protocols AMQP 0.9.1 and AMQP 1.0 are very similar and that the differences
+between them cannot be that severe. Unfortunately, the naming could lead to confusion for those who are not familiar
+with the concepts of both protocols. In fact, AMQP 0.9.1 and AMQP 1.0 should be treated like completely different
+specifications. The Advanced Message Queuing Protocol (AMQP) was released for communication between clients and
+messaging brokers. It is widely used and supported by several broker implementations: RabbitMQ, ActiveMQ and SwiftMQ,
+to name just a few examples. The architecture that is assumed by AMQP 0.9.1 relies mainly on queues and exchanges. +
+In contrast to that, AMQP 1.0 was developed to be more universally applicable and therefore does not know concepts
+like these entities. By assuming less, the protocol should be more flexible to use. +
+As also stated on the AMQP website, the protocol was introduced "to become the standard protocol for
+interoperability between all messaging middleware". Using the RabbitMQ broker as an example, we want to take
+a closer look at the extent to which AMQP is supported and how different versions interoperate with each other.
+Therefore, in the following, we will compare the use of three Java client libraries: RabbitMQ, SwiftMQ and Qpid JMS.
+The RabbitMQ broker requires an activated AMQP 1.0 plugin for this. +
+The competing consumer and publish-subscribe patterns were implemented using these clients within this
+https://github.com/NovatecConsulting/showcase-rabbitmq/tree/main[repository]. Feel free to have a look at the implementations
+and how they differ from each other!
 
 == RabbitMQ Support for AMQP 1.0
-Most of the established brokers only or mainly support AMQP 1.0 since this protocol
-version was introduced as an OASIS standard. In contrast to that, RabbitMQ focuses
-on AMQP 0.9.1, and AMQP 1.0 support can only be added via a plugin.
-Nevertheless, since SwiftMQ, ActiveMQ and Qpid are JMS-based, there are less
-AMQP 1.0 client libraries available for other programming languages than Java. +
-In case a broker is needed which supports AMQP 0.9.1 and AMQP 1.0 on an equal level, the choice will
-remain limited:
+Most of the established brokers only or mainly support AMQP 1.0 since this protocol version was introduced as an OASIS
+standard. In contrast to that, RabbitMQ focuses on AMQP 0.9.1, and AMQP 1.0 support can only be added via a plugin.
+Nevertheless, since SwiftMQ, ActiveMQ and Qpid are JMS-based, there are fewer AMQP 1.0 client libraries available for
+programming languages other than Java. +
+In case a broker is needed which supports AMQP 0.9.1 and AMQP 1.0 on equal levels, the choice will remain limited:
 
 |===
 |Broker Implementation |AMQP Protocol Support
 
-|RabbitMQ
+|https://www.rabbitmq.com/[RabbitMQ]
 |mainly supports AMQP 0.9.1; AMQP 1.0 support by plugin
 
-|SwiftMQ
+|https://www.swiftmq.com/[SwiftMQ]
 |mainly supports AMQP 1.0; limited AMQP 0.9.1 support
 
-|ActiveMQ Artemis
+|https://activemq.apache.org/components/artemis/[ActiveMQ Artemis]
 |supports AMQP 1.0
 
-|ActiveMQ "Classic"
+|https://activemq.apache.org/components/classic/[ActiveMQ "Classic"]
 |supports AMQP 1.0 via a transport connector
 
-|Qpid Broker-J
+|https://qpid.apache.org/components/broker-j/index.html[Qpid Broker-J]
 |supports AMQP 0.8 to 1.0
 
 |===
 
 Coming back to RabbitMQ as an example, their Java client only supports sending and receiving AMQP 0.9.1 messages.
-So another Java client is needed to use the AMQP 1.0 plugin.
-At the moment of writing this article and as also stated in the documentation of the plugin, there are only a few
-clients for AMQP 1.0, especially for Java:
+So another library is needed to use the AMQP 1.0 plugin. At the moment of writing this article and as also stated
+in the documentation of the plugin, there are only a few clients for AMQP 1.0, especially for Java:
 
 * https://www.swiftmq.com/docs/docs/client/amqp/[SwiftMQ]:
 The plugin's developers tested the functionalities mainly using SwiftMQ.
@@ -66,33 +63,32 @@ The documentation is not that detailed and does not provide examples.
 * https://qpid.apache.org/components/jms/index.html[Qpid JMS]:
 Uses Proton-J internally.
 
-As already mentioned, AMQP 1.0 is not based on queues or topics. The target (or source) of a message has to be specified using
-the address-field of an AMQP 1.0 message like it is described in the
-https://github.com/rabbitmq/rabbitmq-amqp1.0#routing-and-addressing[plugin's documentation].
+As already mentioned, AMQP 1.0 is not based on queues or topics. The target (or source) of a message has to be
+specified using the address field of an AMQP 1.0 message like it is described in the https://github.com/rabbitmq/rabbitmq-server/tree/master/deps/rabbitmq_amqp1_0#routing-and-addressing[plugin documentation].
 
-Since this concept does not exist in AMQP 1.0, the Java clients do not offer the possibility to manage
-queues, topics and bindings like it is possible with the RabbitMQ Java Client for AMQP 0.9.1. Therefore, exchanges
-and queues need to already exist when the application is started or can be created using RabbitMQ's REST API. +
+Since this concept does not exist in AMQP 1.0, the Java clients do not offer the possibility to manage queues,
+topics and bindings like it is possible with the RabbitMQ Java Client for AMQP 0.9.1. Therefore, these entities
+need to already exist when the application is started or can be created using RabbitMQ’s REST API.
 However, the REST API is only available with the help of the management plugin that needs to be enabled.
 
 This approach of managing queues comes along with some constraints in comparison to AMQP 0.9.1 clients: The entities
 that are created with HTTP requests are not client-bound and therefore cannot be created as "exclusive". Automatic
-deletion can be achieved through other queue properties like auto-delete and TTL. In addition, the REST API does not
-offer to create queues without names to let the broker choose a (temporary) unique queue name. This leads to the
-consequence that unique names have to be managed by the application. In most cases, these requirements will only
-be needed in very specific scenarios. Nevertheless, it should be clear that RabbitMQ in conjunction with AMQP 1.0 can
-only be used with partially limited functionality.
+deletion needs to be achieved through other queue properties like _auto-delete_ and _TTL_. In addition, the REST API does
+not offer to create queues without names to let the broker choose a (temporary) unique queue name. This leads to the
+consequence that unique names have to be managed by the application.  +
+In most cases, these requirements will only be
+needed in specific scenarios. Nevertheless, it should be clear that RabbitMQ in conjunction with AMQP 1.0 can only be
+used with partially limited functionality.
 
 == AMQP 0.9.1 and AMQP 1.0 Interoperability
-Now as we already know, AMQP 0.9.1 and AMQP 1.0 should be considered as completely different specifications.
-Nevertheless, some questions can arise when working with them: Is interoperability between these two protocols possible "out-of-the-box"? And if not, what has to be
-considered to achieve interoperability? What about interoperability between different clients speaking the
-same protocol? +
-These points are especially important, when we think again about an (evolving) event-driven
-architecture. The components of a system should be able to exchange events and data independently of the protocol
-they are speaking. +
-As also mentioned within the RabbitMQ's plugin documentation, interoperability between AMQP 0.9.1 and AMQP 1.0
-is provided with some constraints:
+As we already know, AMQP 0.9.1 and AMQP 1.0 should be considered as completely different specifications which leads
+to the questions: Is interoperability between these two protocols possible
+"out-of-the-box"? And if not, what has to be considered to achieve interoperability? What about interoperability
+between different clients speaking the same protocol? +
+These points are especially important when we think again about an (evolving) event-driven architecture. The components
+of a system should be able to exchange events and data independently of the protocol they are using. +
+As also described within RabbitMQ’s plugin documentation, interoperability between AMQP 0.9.1 and AMQP 1.0 is provided
+with some constraints:
 
 |===
 |Producer Library |Consumer Library|Interoperability
@@ -122,13 +118,13 @@ is provided with some constraints:
 |provided
 |===
 
-As denoted in the table above, when testing the different clients, it was generally possible to send and receive
+Like denoted in the table above, when testing the different clients, it was generally possible to send and receive
 messages using AMQP 1.0 and AMQP 0.9.1. +
-For AMQP 1.0 messages that should be read by AMQP 0.9.1 clients, it should be considered that AMQP 1.0 uses the so-called AMQP-encoding.
-This means that all messages that are sent with AMQP 1.0 are encoded beforehand. The grammar of this
-encoding is specified within the AMQP 1.0 protocol. However, this grammar can be implemented differently
-by each client. +
-The consequences will become more clear when looking at an example:
+For AMQP 1.0 messages that should be read by AMQP 0.9.1 clients, it should be considered that AMQP 1.0 uses
+the so-called AMQP-encoding. This means that all messages that are sent with AMQP 1.0 are encoded beforehand.
+The grammar of this encoding is specified within the AMQP 1.0 protocol. However, this grammar can be implemented
+differently by each client. +
+The consequences will become clear when looking at an example:
 
 * Sent message using SwiftMQ client (AMQP 1.0): M1
 * Received message using RabbitMQ client (AMQP 0.9.1): �w�M1
@@ -136,33 +132,30 @@ The consequences will become more clear when looking at an example:
 * Sent message using Qpid JMS client (AMQP 1.0): M1
 * Received message using RabbitMQ client (AMQP 0.9.1): Sw�M1
 
-The examples show that there are some additional bytes appended in front of the messages.
-The reason for this is the AMQP encoding that is used by the message producers. Since this encoding seems not to be implemented the same for
-every client, it is not possible for the AMQP-plugin to cut those additional bytes off. This issue was also discussed in the RabbitMQ https://groups.google.com/g/rabbitmq-users/c/QBsc_wCuTBs/m/xh84gj1hAwAJ[mailing list]. +
-Despite the slightly different implementation of the encoding and decoding of the clients,
-it is possible to send and receive AMQP 1.0 messages with different AMQP 1.0 client libraries without constraints.
+The examples show that there are some additional bytes appended in front of the messages. The reason for this is the
+AMQP-encoding that is used by the message producers. Since this encoding seems not to be implemented the same for
+every client, the AMQP-plugin cannot cut those additional bytes off. This issue was also discussed in the RabbitMQ
+https://groups.google.com/g/rabbitmq-users/c/QBsc_wCuTBs/m/xh84gj1hAwAJ[mailing list].
+Despite the slightly different implementation of the encoding and decoding of the clients, it is possible to send
+and receive AMQP 1.0 messages with different AMQP 1.0 client libraries without constraints.
 
-The AMQP 1.0 protocol also includes a possibility to send unencoded messages. Data can be sent
-as payload of the _data field_ of an AMQP 1.0 message. Data included in this _data field_ will not be encoded
-and therefore sent as plain bytes. This ensures that clients who do not speak
-AMQP-encoding are able to speak with AMQP 1.0 communication partners. +
-To use this functionality, it needs to be explicitly implemented within the code.
-Therefore, it needs to be known at the time of the implementation if there are or will be
-communication partners who do not speak AMQP 1.0.
+The AMQP 1.0 protocol also includes a possibility to send unencoded messages. Data can be sent as payload of the
+_data field_ of an AMQP 1.0 message. Data included in this _data field_ will not be encoded and therefore sent as plain
+bytes. This ensures that clients who do not speak AMQP-encoding can speak with AMQP 1.0 communication partners. +
+To use this functionality, it needs to be explicitly implemented within the code. Therefore, it needs to be known at
+the time of the implementation if there are or will be communication partners who do not speak AMQP 1.0.
 
-As also denoted in the table above, SwiftMQ clients need to explicitly check if data was sent
-within the data field. If messages are sent in AMQP 0.9.1 format, the RabbitMQ plugin will
-forward these messages to AMQP 1.0 clients as part of the message data field.
-In contrast to SwiftMQ, the Qpid JMS client library checks for payload in the
-data field internally. Therefore, this check has only to be done when using SwiftMQ.
+SwiftMQ clients need to explicitly check if data was sent within the data field.
+If messages are sent in AMQP 0.9.1 format, the RabbitMQ plugin will forward these messages to AMQP 1.0 clients as
+part of the message data field. In contrast to SwiftMQ, the Qpid JMS client library checks for payload in the data
+field internally. Therefore, this check has only to be done when using SwiftMQ.
+
 
 == Summary
-When using RabbitMQ as a broker, it is possible to exchange messages in AMQP 0.9.1 and AMQP 1.0 format.
+When using RabbitMQ as a broker, messages can be exchanged in AMQP 0.9.1 and AMQP 1.0 format.
 Nevertheless, this can only be done when some constraints are considered at the time of the implementation.
-Therefore, when adding new components to existing systems, the question remains if these considerations
-can always be taken into account. And if this can be taken into account, it may
-still be easier to stay with one AMQP specification. At this point, it can also be added that at least for
-RabbitMQ, AMQP 0.9.1 remains supported in the long term.
-
-AMQP 1.0 was introduced to become a new standard in interoperability between messaging middleware. Still, there
-are many systems relying on AMQP 0.9.1 and interoperability with these systems cannot be guaranteed.
+Therefore, when adding new components to existing systems, the question remains if these considerations can always
+be taken into account. And if this can be taken into account, it may still be easier to stay with one AMQP specification.
+At this point, it can also be added that at least for RabbitMQ, AMQP 0.9.1 remains supported in the long term. +
+AMQP 1.0 was introduced to become a new standard in interoperability between messaging middleware. Still, many systems
+rely on AMQP 0.9.1, and interoperability with these systems cannot be guaranteed.
