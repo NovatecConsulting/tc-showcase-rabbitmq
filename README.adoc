@@ -313,12 +313,12 @@ The publish-subscribe pattern requires one queue for each subscriber. The publis
 exchange from where they will be broadcast to all queues with a corresponding binding. Since the queue name is
 different for each subscriber, the name has to be passed into the program (if the queue already exists), or
 the queue has to be created within the application via the RabbitMQ REST API.
-Both possibilities come along with advantages and disadvantages which is why SwiftMQ and AMQP 1.0 are probably not
-suitable for the publish-subscribe pattern.
+Both possibilities come along with advantages and disadvantages which is why AMQP 1.0 is probably not
+ideal for the publish-subscribe pattern.
 
 In this repository, the Setup-class implements methods for the creation of exchanges, queues and bindings via REST.
 The entities that are created with HTTP methods are not client-bound and therefore cannot be created as "exclusive".
-Automatic deletion can be achieved through other queue properties like auto-delete and TTL (see root README for more details).
+Automatic deletion can be achieved through other queue properties like auto-delete and TTL.
 In addition, the REST API does not offer to create queues without names to let the broker choose a (temporary) unique
 queue name. This leads to the constraint, that unique names have to be managed by the application.
 
