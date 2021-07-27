@@ -17,6 +17,7 @@ class CCPollingTest extends Specification {
     @Shared
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withExposedPorts(5672)
+            .withStartupTimeout(Duration.ofMinutes(2))
 
     def producer, consumer1, consumer2, queue, environment
     def consumer1Queue = new LinkedBlockingQueue()
