@@ -23,7 +23,8 @@ Therefore, in the following, we will compare the use of three Java client librar
 The RabbitMQ broker requires an activated AMQP 1.0 plugin for this. +
 The competing consumer and publish-subscribe patterns were implemented using these clients within this
 https://github.com/NovatecConsulting/showcase-rabbitmq/tree/main[repository]. Feel free to have a look at the implementations
-and how they differ from each other!
+and how they differ from each other! Additionally, there were different interoperability examples implemented
+which build the basis for this blog post.
 
 == RabbitMQ Support for AMQP 1.0
 Most of the established brokers only or mainly support AMQP 1.0 since this protocol version was introduced as an OASIS
@@ -36,7 +37,7 @@ In case a broker is needed which supports AMQP 0.9.1 and AMQP 1.0 on equal level
 |Broker Implementation |AMQP Protocol Support
 
 |https://www.rabbitmq.com/[RabbitMQ]
-|mainly supports AMQP 0.9.1; AMQP 1.0 support by plugin
+|mainly supports AMQP 0.9.1; AMQP 1.0 support by a plugin
 
 |https://www.swiftmq.com/[SwiftMQ]
 |mainly supports AMQP 1.0; limited AMQP 0.9.1 support
@@ -54,20 +55,25 @@ In case a broker is needed which supports AMQP 0.9.1 and AMQP 1.0 on equal level
 
 Coming back to RabbitMQ as an example, their Java client only supports sending and receiving AMQP 0.9.1 messages.
 So another library is needed to use the AMQP 1.0 plugin. At the moment of writing this article and as also stated
-in the documentation of the plugin, there are only a few clients for AMQP 1.0, especially for Java:
+in the https://github.com/rabbitmq/rabbitmq-amqp1.0#clients-we-have-tested[documentation of the plugin], there are only a few clients for AMQP 1.0, especially for Java. The following
+clients are also partly mentioned on https://github.com/rabbitmq/rabbitmq-amqp1.0#clients-we-have-tested[Github]:
 
 * https://www.swiftmq.com/docs/docs/client/amqp/[SwiftMQ]:
-The plugin's developers tested the functionalities mainly using SwiftMQ.
+Even when there is a SwiftMQ Broker implementation, the AMQP 1.0 SwiftMQ client can
+be used to connect to any AMQP 1.0 capable endpoint.
+The developers of the RabbitMQ 1.0 plugin tested the functionalities mainly using SwiftMQ.
 * https://qpid.apache.org/releases/qpid-proton-j-0.33.8/[Qpid Proton-J]:
-The documentation is not that detailed and does not provide examples.
+A very "low level" library, rather for developing clients and brokers than for
+business applications. The documentation is not that detailed and does not provide examples.
 * https://qpid.apache.org/components/jms/index.html[Qpid JMS]:
-Uses Proton-J internally.
+An AMQP 1.0 Java Message Service 2.0 client which uses Qpid Proton-J internally.
+There is also a Qpid JMS client for old AMQP versions.
 
 As already mentioned, AMQP 1.0 is not based on queues or topics. The target (or source) of a message has to be
 specified using the address field of an AMQP 1.0 message like it is described in the https://github.com/rabbitmq/rabbitmq-server/tree/master/deps/rabbitmq_amqp1_0#routing-and-addressing[plugin documentation].
 
-Since this concept does not exist in AMQP 1.0, the Java clients do not offer the possibility to manage queues,
-topics and bindings like it is possible with the RabbitMQ Java Client for AMQP 0.9.1. Therefore, these entities
+Since the concepts of AMQP 0.9.1 do not exist in AMQP 1.0, the Java clients do not offer the possibility to manage queues,
+topics and bindings. Therefore, these entities
 need to already exist when the application is started or can be created using RabbitMQ’s REST API.
 However, the REST API is only available with the help of the management plugin that needs to be enabled.
 
@@ -87,7 +93,7 @@ to the questions: Is interoperability between these two protocols possible
 between different clients speaking the same protocol? +
 These points are especially important when we think again about an (evolving) event-driven architecture. The components
 of a system should be able to exchange events and data independently of the protocol they are using. +
-As also described within RabbitMQ’s plugin documentation, interoperability between AMQP 0.9.1 and AMQP 1.0 is provided
+As also described within https://github.com/rabbitmq/rabbitmq-amqp1.0#interoperability-with-amqp-0-9-1[RabbitMQ’s plugin documentation], interoperability between AMQP 0.9.1 and AMQP 1.0 is provided
 with some constraints:
 
 |===
@@ -118,44 +124,133 @@ with some constraints:
 |provided
 |===
 
-Like denoted in the table above, when testing the different clients, it was generally possible to send and receive
+As denoted in the table above, when testing the different clients, it was generally possible to send and receive
 messages using AMQP 1.0 and AMQP 0.9.1. +
-For AMQP 1.0 messages that should be read by AMQP 0.9.1 clients, it should be considered that AMQP 1.0 uses
-the so-called AMQP-encoding. This means that all messages that are sent with AMQP 1.0 are encoded beforehand.
-The grammar of this encoding is specified within the AMQP 1.0 protocol. However, this grammar can be implemented
+
+For AMQP 1.0 messages, it should be considered that AMQP 1.0 uses
+the so-called http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-types-v1.0-os.html#section-encodings[AMQP-encoding]. This means that all messages that are sent with AMQP 1.0 are encoded beforehand.
+The grammar of this encoding is described within the AMQP 1.0 specification. However, this grammar can be implemented
 differently by each client. +
 The consequences will become clear when looking at an example:
 
 * Sent message using SwiftMQ client (AMQP 1.0): M1
-* Received message using RabbitMQ client (AMQP 0.9.1): �w�M1
+* Received message using RabbitMQ client (AMQP 0.9.1): +
+UTF-8 representation: �w�M1 +
+Hex representation: 0x00 0x80 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x77 0xA1 0x02 M1
 
 * Sent message using Qpid JMS client (AMQP 1.0): M1
-* Received message using RabbitMQ client (AMQP 0.9.1): Sw�M1
+* Received message using RabbitMQ client (AMQP 0.9.1): +
+UTF-8 representation: Sw�M1 +
+Hex representation: 0x00 0x80 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x77 0xA1 0x02 M1
 
 The examples show that there are some additional bytes appended in front of the messages. The reason for this is the
-AMQP-encoding that is used by the message producers. Since this encoding seems not to be implemented the same for
-every client, the AMQP-plugin cannot cut those additional bytes off. This issue was also discussed in the RabbitMQ
-https://groups.google.com/g/rabbitmq-users/c/QBsc_wCuTBs/m/xh84gj1hAwAJ[mailing list].
-Despite the slightly different implementation of the encoding and decoding of the clients, it is possible to send
-and receive AMQP 1.0 messages with different AMQP 1.0 client libraries without constraints.
+AMQP-encoding that is used by the message producers. Qpid and SwiftMQ both implement the AMQP specification correctly,
+but use a slightly different interpretation. It becomes more clear when looking at the hexadecimal representation
+of the exchanged message: SwiftMQ uses 0x80 as a descriptor code which represents an "unsigned long with 8 bytes". In
+contrast to that, Qpid uses 0x53 as descriptor code which symbolizes "small unsigned long". +
+In terms of the transferred bytes, Qpid JMS is much more efficient. However, both interpretations are valid
+and work correctly. +
+Nevertheless, the question remains if it is a good approach to allow different possibilities to basically express the same.
 
-The AMQP 1.0 protocol also includes a possibility to send unencoded messages. Data can be sent as payload of the
-_data field_ of an AMQP 1.0 message. Data included in this _data field_ will not be encoded and therefore sent as plain
-bytes. This ensures that clients who do not speak AMQP-encoding can speak with AMQP 1.0 communication partners. +
-To use this functionality, it needs to be explicitly implemented within the code. Therefore, it needs to be known at
-the time of the implementation if there are or will be communication partners who do not speak AMQP 1.0.
+If AMQP 1.0 messages should be readable for AMQP 0.9.1 clients, there are some constraints like it is also described in the table.
+AMQP 1.0 offers the possibility to send data in different fields of the http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format[message body]: there can be one or more
+data sections, one or more amqp-sequence sections or a single-value section. The data sections
+are only allowed to contain binary data while the other sections can contain any primitive or composite type.
+The RabbitMQ AMQP 1.0 plugin can only convert version 1.0 messages to version 0.9.1 messages if they are sent
+within a http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data[data section]. If this is the case, the RabbitMQ plugin can decode the binary data to send it to the 0.9.1 consumer.
+If messages are sent as part of other message sections, the plugin does not know how to transform them because
+information about the target format would be needed to do this. Of course, this should not be the responsibility
+of the plugin. Therefore, those messages are directly forwarded in AMQP 1.0 format without any conversion.
 
-SwiftMQ clients need to explicitly check if data was sent within the data field.
-If messages are sent in AMQP 0.9.1 format, the RabbitMQ plugin will forward these messages to AMQP 1.0 clients as
-part of the message data field. In contrast to SwiftMQ, the Qpid JMS client library checks for payload in the data
-field internally. Therefore, this check has only to be done when using SwiftMQ.
+As already mentioned, AMQP 1.0 allows multiple data sections with binary data. However, if the messages should be
+received by an AMQP 0.9.1 consumer, the RabbitMQ plugin can only handle messages with a single data section.
+The reason for this is that AMQP 0.9.1 only specifies a single data value. The plugin does therefore not know
+how to translate multiple data sections correctly. +
+If you want to dig into the details, you can find the actual implementation of the RabbitMQ plugin https://github.com/rabbitmq/rabbitmq-server/blob/5c3f456131558e1c0c11e862c5ea96dbcb19bb85/deps/rabbitmq_amqp1_0/src/rabbit_amqp1_0_message.erl#L67[here].
 
+To send messages as data sections and therefore readable for 0.9.1 clients, it needs to be explicitly implemented
+within the code. For this reason, it needs to be known at the time of the implementation if there are or will be
+communication partners who do not speak AMQP 1.0. +
+For a Qpid client sending messages to a RabbitMQ client (line 5 in the table), this implementation
+could look like the following:
+
+*Qpid JMS Producer*
+[source, java]
+----
+    private MessageProducer messageProducer;
+
+    /* ... */
+
+    public void sendBinaryMessage(String message) throws IOException {
+        try {
+            BytesMessage bytesMessage = getSession().createBytesMessage();
+            bytesMessage.writeBytes(message.getBytes());
+            messageProducer.send(bytesMessage);
+        }catch(JMSException e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+----
+A Qpid JMS consumer can also receive AMQP 0.9.1 messages (line 6 in the table). Nevertheless, it needs to be checked for the
+original type of the message for appropriate conversion:
+
+*Qpid JMS Consumer*
+[source, java]
+----
+    private MessageConsumer messageConsumer;
+
+    /* ... */
+
+    public void consumeMessage() {
+        try {
+            Message message = messageConsumer.receive(1000);
+            if(message != null) {
+                if(message instanceof TextMessage) {
+                    getMessageHandler().accept(((TextMessage)message).getText());
+                    System.out.println("Received message " + ((TextMessage)message).getText());
+                } else if(message instanceof JmsBytesMessage) {
+                    JmsBytesMessage bytesMessage = (JmsBytesMessage) message;
+                    int length = Long.valueOf(bytesMessage.getBodyLength()).intValue();
+                    byte[] b = new byte[length];
+                    ((JmsBytesMessage) message).readBytes(b, length);
+                    String text = new String(b, StandardCharsets.UTF_8);
+                    getMessageHandler().accept(text);
+                    System.out.println("Received message " + text);
+                } else {
+                    log.severe("Type of received message is unknown.");
+                }
+            }
+        } catch (JMSException e) {
+            log.warning("Could not consume message.");
+        }
+    }
+----
+
+Like it can also be seen in the code, the Qpid consumer does not have to check explicitly in which message section the data
+was sent. This check for data, amqp-sequence or amqp-value section is done internally by the client library.
+In contrast to that, this needs to be implemented by yourself when using SwiftMQ.
+
+As an additional side-note: Maybe you also read about the https://www.rabbitmq.com/shovel.html[RabbitMQ Shovel plugin]
+which was developed to move messages from a source in one cluster to a destination in another cluster.
+This plugin also supports AMQP 0.9.1 and AMQP 1.0.
+Since the same implementations for conversion are used internally, also the same constraints in terms of
+interoperability apply.
 
 == Summary
 When using RabbitMQ as a broker, messages can be exchanged in AMQP 0.9.1 and AMQP 1.0 format.
 Nevertheless, this can only be done when some constraints are considered at the time of the implementation.
 Therefore, when adding new components to existing systems, the question remains if these considerations can always
-be taken into account. And if this can be taken into account, it may still be easier to stay with one AMQP specification.
-At this point, it can also be added that at least for RabbitMQ, AMQP 0.9.1 remains supported in the long term. +
-AMQP 1.0 was introduced to become a new standard in interoperability between messaging middleware. Still, many systems
-rely on AMQP 0.9.1, and interoperability with these systems cannot be guaranteed.
+be taken into account. And if this can be taken into account, it may still be easier to stay with one AMQP specification. +
+At this point, it can also be added that at least for RabbitMQ, AMQP 0.9.1 remains supported in the long term.
+
+Instead of using the AMQP 1.0 encoding,  it can also be considered to use an established encoding like
+Avro, Protobuf or JSON. These formats are much more widely used and provide more flexibility than
+the AMQP 1.0 message format. +
+AMQP 1.0 was introduced to become a new standard in interoperability between messaging middleware. Still, some systems
+relying on AMQP 0.9.1, and interoperability with these systems cannot be guaranteed. In terms of this,
+it might probably be a better choice to use a more established encoding. +
+Additionally, the grammar for AMQP 1.0 encoding seems unnecessarily complicated and leaves room for ambiguity.
+
+To summarize, the advantages of AMQP 1.0 in comparison to other widely-used encoding formats became not
+clear to me. Perhaps several usage scenarios need to be considered to make a final judgment.
+Feel free to leave a comment with your thoughts about this!
