@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - competingconsumers
+      - bug-fixing
   pull_request:
     branches:
       - main
