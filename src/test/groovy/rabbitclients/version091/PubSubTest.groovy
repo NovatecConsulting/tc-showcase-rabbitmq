@@ -17,7 +17,7 @@ class PubSubTest extends Specification {
     @Shared
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withExposedPorts(5672)
-            .withStartupTimeout(Duration.ofMinutes(2))
+            .withStartupTimeout(Duration.ofMinutes(3))
 
     def producer, consumer1, consumer2, environment1, environment2, environment3
     def sentMessages = ["M1", "M2", "M3"]

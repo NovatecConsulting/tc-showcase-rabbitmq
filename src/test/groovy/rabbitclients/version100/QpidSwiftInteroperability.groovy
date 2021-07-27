@@ -22,7 +22,7 @@ class QpidSwiftInteroperability extends Specification {
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withPluginsEnabled("rabbitmq_amqp1_0")
             .withExposedPorts(5672, 15672)
-            .withStartupTimeout(Duration.ofMinutes(2))
+            .withStartupTimeout(Duration.ofMinutes(3))
 
     def producer, consumer1, queue, environment
     def sentMessages = ["M1", "M2", "M3"]

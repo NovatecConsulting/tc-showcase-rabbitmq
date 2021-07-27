@@ -17,7 +17,7 @@ class PubSubTest extends Specification {
     RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3")
             .withPluginsEnabled("rabbitmq_amqp1_0", "rabbitmq_management")
             .withExposedPorts(5672, 15672)
-            .withStartupTimeout(Duration.ofMinutes(2))
+            .withStartupTimeout(Duration.ofMinutes(3))
 
     def publisher, subscriber1, subscriber2, queue, environment1, environment2, environment3
     def sentMessages = ["M1", "M2", "M3"]
