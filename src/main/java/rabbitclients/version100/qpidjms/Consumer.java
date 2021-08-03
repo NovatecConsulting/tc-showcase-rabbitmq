@@ -46,9 +46,8 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
                         System.out.println("Received message " + ((TextMessage)message).getText());
                     } else if(message instanceof JmsBytesMessage) {
                         JmsBytesMessage bytesMessage = (JmsBytesMessage) message;
-                        int length = Long.valueOf(bytesMessage.getBodyLength()).intValue();
-                        byte[] b = new byte[length];
-                        ((JmsBytesMessage) message).readBytes(b, length);
+                        byte[] b = new byte[(int)bytesMessage.getBodyLength()];
+                        bytesMessage.readBytes(b);
                         String text = new String(b, StandardCharsets.UTF_8);
                         getMessageHandler().accept(text);
                         System.out.println("Received message " + text);
