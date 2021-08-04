@@ -1,9 +1,7 @@
 package rabbitclients.version100.swiftmq.publishsubscribe;
 
 import com.swiftmq.amqp.v100.client.AMQPException;
-import com.swiftmq.amqp.v100.client.AuthenticationException;
 import com.swiftmq.amqp.v100.client.QoS;
-import com.swiftmq.amqp.v100.client.UnsupportedProtocolVersionException;
 import com.swiftmq.amqp.v100.messaging.AMQPMessage;
 import com.swiftmq.amqp.v100.types.AMQPString;
 import com.swiftmq.amqp.v100.types.AMQPType;
@@ -11,6 +9,8 @@ import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
 import rabbitclients.ReceiverApplication;
 import rabbitclients.version100.swiftmq.AbstractAMQPConsumer;
+import rabbitclients.version100.Setup;
+
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;

@@ -2,15 +2,12 @@ package rabbitclients.version100.qpidjms;
 
 import org.apache.qpid.jms.JmsQueue;
 import org.apache.qpid.jms.message.JmsBytesMessage;
-import org.apache.qpid.jms.message.JmsMessage;
 import rabbitclients.AMQPConsumer;
 import rabbitclients.EnvRabbitMQConfig;
 import rabbitclients.RabbitMQConfig;
 import rabbitclients.ReceiverApplication;
-
 import javax.jms.*;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,9 +46,8 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
                         System.out.println("Received message " + ((TextMessage)message).getText());
                     } else if(message instanceof JmsBytesMessage) {
                         JmsBytesMessage bytesMessage = (JmsBytesMessage) message;
-                        int length = Long.valueOf(bytesMessage.getBodyLength()).intValue();
-                        byte[] b = new byte[length];
-                        ((JmsBytesMessage) message).readBytes(b, length);
+                        byte[] b = new byte[(int)bytesMessage.getBodyLength()];
+                        bytesMessage.readBytes(b);
                         String text = new String(b, StandardCharsets.UTF_8);
                         getMessageHandler().accept(text);
                         System.out.println("Received message " + text);
@@ -96,5 +92,15 @@ public class Consumer extends BaseClient implements AMQPConsumer, Runnable {
      */
     public static void main(String[] args) throws IOException, TimeoutException {
         new ReceiverApplication(worker -> new Consumer(new EnvRabbitMQConfig(), worker)).start();
+    }
+
+    /**
+     * Start and test this producer as a console application.
+     * @param config
+     * @throws IOException
+     * @throws TimeoutException
+     */
+    public static void main(RabbitMQConfig config) throws IOException, TimeoutException {
+        new ReceiverApplication(worker -> new Consumer(config, worker)).start();
     }
 }

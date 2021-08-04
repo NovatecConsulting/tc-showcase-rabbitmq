@@ -1,4 +1,4 @@
-package rabbitclients.version100.swiftmq.interoperability
+package rabbitclients.version100
 
 import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.spock.Testcontainers
@@ -6,6 +6,7 @@ import rabbitclients.Common
 import rabbitclients.EnvRabbitMQConfig
 import rabbitclients.version100.qpidjms.Consumer
 import rabbitclients.version100.swiftmq.competingconsumers.Producer
+import rabbitclients.version100.swiftmq.interoperability.InteroperabilityConsumer
 import spock.lang.Shared
 import spock.lang.Specification
 import java.time.Duration
@@ -28,13 +29,13 @@ class QpidSwiftInteroperability extends Specification {
 
     def "consumed messages equal sent messages for SwiftMQ Producer and Qpid Consumer"() {
         given:
-        producer = new rabbitclients.version100.swiftmq.competingconsumers.Producer(environment)
+        producer = new Producer(environment)
         for (item in sentMessages) {
             producer.sendMessage(item)
         }
 
         queue = new LinkedBlockingQueue()
-        consumer1 = new rabbitclients.version100.qpidjms.Consumer(environment, queue::add)
+        consumer1 = new Consumer(environment, queue::add)
 
         when:
         consumer1.consumeMessages()

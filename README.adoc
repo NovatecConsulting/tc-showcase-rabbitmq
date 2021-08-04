@@ -43,20 +43,20 @@ Pull requests will automatically trigger a new test run.
 
 RabbitMQ uses the following model:
 
-Publishers send their messages to exchanges which can be compared to postoffices or mailboxes. These messages are then
+Publishers send their messages to exchanges which can be compared to post offices or mailboxes. These messages are then
 forwarded to one or more binded queues. Consumers can subscribe to queues or explicitly pull from them.
 
 [discrete]
 === Exchanges
 
-Exchanges route messages to one or more defined queues. There are four differnt types of exchanges:
+Exchanges route messages to one or more defined queues. There are four different types of exchanges:
 
 * Direct exchange
 * Fanout exchange
 * Topic exchange
 * Headers exchange
 
-By default if no exchange is explicitly created, the broker will use the same name for the routing-key as for the queue
+By default, if no exchange is explicitly created, the broker will use the same name for the routing-key as for the queue
 that the publisher wants to send the messages to.
 
 [discrete]
@@ -98,7 +98,7 @@ channel (session in case of SwiftMQ).
 Exclusive queues can only be accessed by the current connection.
 Therefore, they are deleted as soon as the connection(!) closes.
 It is not possible to declare an exclusive queue from an external connection.
-This is also the reason why it is not possible to declare an exlusive queue using
+This is also the reason why it is not possible to declare an exclusive queue using
 the RabbitMQ Java client and to subscribe to it with an AMQP 1.0 client connection.
 . TTL +
 The TTL-property can be used to avoid deletion of queues in cases
@@ -117,7 +117,7 @@ the AMQPClient interface.
 
 === Competing Consumers
 
-The Competing Consumers Pattern (also know as Point-to-Point) describes the scenario when one producer can publish
+The Competing Consumers Pattern (also known as Point-to-Point) describes the scenario when one producer can publish
 messages to a messaging queue. Those messages can be processed by any of multiple consumers while each message will only be processed once.
 
 Further details: https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html
@@ -148,18 +148,14 @@ The implementation of producers and consumers can be found at:
 The publish-subscribe implementation for AMQP 1.0 has some constraints and disadvantages which is why it probably
 should not be used practically. See paragraph 4.8 for more details.
 
-//*********************************************************************************
-//AMQP 0.9.1
-//*********************************************************************************
-
 == AMQP 0.9.1
 
 AMQP 0.9.1 is RabbitMQ's default protocol. There are various client libraries available that were developed by the
 RabbitMQ team to support AMQP 0.9.1.
 
-=== Competing Consumers: Eventdriven Consumer
+=== Competing Consumers: Event-driven Consumer
 
-Using an eventdriven consumer for the competing consumer pattern is considered as standard for RabbitMQ.
+Using an event-driven consumer for the competing consumer pattern is considered as standard for RabbitMQ.
 The basicConsume()-method uses the DeliverCallBack interface to notify the consumer as soon as a new message is available.
 The consumer is not blocked while it is waiting for messages.
 
@@ -194,9 +190,6 @@ GetResponse response = channel.basicGet(TASK_QUEUE_NAME, false);
 
 Read more about this type of consumer https://www.enterpriseintegrationpatterns.com/patterns/messaging/PollingConsumer.html[here].
 
-//************************************************************************
-//AMQP 1.0
-//************************************************************************
 
 == AMQP 1.0
 
@@ -317,15 +310,15 @@ queues, topics and bindings like it is possible with the RabbitMQ Java Client fo
 and queues need to already exist when the application is started or can be created using RabbitMQ's REST API.
 
 The publish-subscribe pattern requires one queue for each subscriber. The publisher sends all messages to a fanout
-exchange from where they will be broadcasted to all queues with a corresponding binding. Since the queue name is
-different for each subscriber, the name has to be passed into the program (if the queue already exists) or
+exchange from where they will be broadcast to all queues with a corresponding binding. Since the queue name is
+different for each subscriber, the name has to be passed into the program (if the queue already exists), or
 the queue has to be created within the application via the RabbitMQ REST API.
-Both possibilities come along with advantages and disadvantages which is why SwiftMQ and AMQP 1.0 are probably not
-suitable for the publish-subscribe pattern.
+Both possibilities come along with advantages and disadvantages which is why AMQP 1.0 is probably not
+ideal for the publish-subscribe pattern.
 
 In this repository, the Setup-class implements methods for the creation of exchanges, queues and bindings via REST.
 The entities that are created with HTTP methods are not client-bound and therefore cannot be created as "exclusive".
-Automatic deletion can be achieved through other queue properties like auto-delete and TTL (see root README for more details).
+Automatic deletion can be achieved through other queue properties like auto-delete and TTL.
 In addition, the REST API does not offer to create queues without names to let the broker choose a (temporary) unique
 queue name. This leads to the constraint, that unique names have to be managed by the application.
 
@@ -347,7 +340,7 @@ To resolve this, enable the plugin like described above at _Plugin Installation_
 
 
 == AMQP Version and Library Interoperability
-
+=== RabbitMQ, SwiftMQ and Qpid JMS
 |===
 |Producer Library |Consumer Library|Interoperability
 
@@ -439,5 +432,18 @@ the data field. The distinction between AMQP 0.9.1 messages (at the data field) 
 === AMQP 1.0 (SwiftMQ) to AMQP 1.0 (Qpid JMS) and vice versa
 The testing class ``QpidSwiftInteroperability`` tests the interoperability of SwiftMQ consumers and producers
 and Qpid JMS consumers and producers.
-The tests proved that messages can be sent and received independently from the
-used client library. All messages are encoded and decoded corretly.
+The tests proved that messages can be sent and received independently of the
+used client library. All messages are encoded and decoded correctly.
+
+=== Shovel Plugin for AMQP 0.9.1 and AMQP 1.0 Interoperability
+Besides the AMQP 1.0 plugin, RabbitMQ also offers the Shovel plugin to transfer and redeliver messages between clusters
+and nodes. The Shovel plugin also supports AMQP 0.9.1 and AMQP 1.0, but is using the same Erlang clients as the
+AMQP 1.0 plugin. Therefore, shovels provide the same interoperability as the AMQP 1.0 plugin, as also indicated in the
+comparison table above. +
+However, dynamic shovels can only be configured via the management UI or via the HTTP API. The latter was implemented within
+the Setup-class where JSON configurations can be sent to create new shovels. The exact configuration depends on the
+endpoints that should be connected. Read more about this topic:
+
+- https://www.rabbitmq.com/shovel.html[Shovel Plugin documentation by RabbitMQ]
+- https://www.rabbitmq.com/shovel-dynamic.html[Dynamic Shovel configuration]
+- https://github.com/rabbitmq/rabbitmq-server/tree/master/deps/rabbitmq_amqp1_0#message-properties-annotations-headers-etc[AMQP 1.0 Plugin documentation on endpoint addresses]
